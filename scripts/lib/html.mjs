@@ -42,6 +42,7 @@ export function crearHtml(cfg, ctx) {
   const nav = [
     ['/', 'Buscador'],
     ['/precio-gasolina-hoy/', 'Precio hoy'],
+    ['/noticias/', 'Noticias'],
     ['/gasolineras/', 'Provincias'],
     ['/marcas/', 'Marcas'],
     ['/calculadora-gasolina-viaje/', 'Calculadora'],
@@ -72,7 +73,7 @@ export function crearHtml(cfg, ctx) {
   const piePaginaProvincias = datos.provincias.map((p) => `<a href="${p.ruta}">${esc(p.nombre)}</a>`).join('');
 
   // actualizada: la página muestra precios del día (lleva dateModified con la hora de los datos)
-  function pagina({ ruta, titulo, descripcion, cuerpo, schemas = [], noindex = false, actualizada = true, clase = '', buscador = false, calculadora = false }) {
+  function pagina({ ruta, titulo, descripcion, cuerpo, schemas = [], noindex = false, actualizada = true, clase = '', buscador = false, calculadora = false, ogTipo = 'website', ogExtra = '' }) {
     const adsense = cfg.anuncios.adsenseCliente && !cfg.anuncios.modoPrueba
       ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(cfg.anuncios.adsenseCliente)}" crossorigin="anonymous"></script>`
       : '';
@@ -97,7 +98,7 @@ export function crearHtml(cfg, ctx) {
 <title>${esc(titulo)}</title>
 <meta name="description" content="${esc(descripcion)}">
 ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${abs(ruta)}">\n<meta name="robots" content="index, follow, max-image-preview:large">`}
-<meta property="og:type" content="website">
+<meta property="og:type" content="${ogTipo}">${ogExtra}
 <meta property="og:site_name" content="${esc(cfg.nombre)}">
 <meta property="og:title" content="${esc(titulo)}">
 <meta property="og:description" content="${esc(descripcion)}">
@@ -111,6 +112,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 <link rel="icon" href="/icono.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icono-180.png">
 <link rel="manifest" href="/manifest.webmanifest">
+<link rel="alternate" type="application/rss+xml" title="${esc(cfg.nombre)}: noticias" href="/noticias/rss.xml">
 <link rel="preload" href="/fuentes/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fuentes/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${assets.css}">
@@ -122,7 +124,7 @@ ${ld}
 <header class="cab">
   <div class="cab-in">
     <a class="marca" href="/" aria-label="${esc(cfg.nombre)}, inicio">${marcaHtml(cfg.nombre)}</a>
-    <nav class="menu" aria-label="Principal">${nav.map(([r, t]) => `<a href="${r}"${r === ruta ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>
+    <nav class="menu" aria-label="Principal">${nav.map(([r, t]) => `<a href="${r}"${r === ruta || (r !== '/' && ruta.startsWith(r)) ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>
   </div>
 </header>
 <main id="contenido" class="wrap">

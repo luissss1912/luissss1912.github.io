@@ -9,6 +9,7 @@ import * as esbuild from 'esbuild';
 import { descargarMinisterio, procesar, actualizarHistorico, nuevoRegistroRutas, unirRegistrosRutas, actualizarRegistroRutas } from './lib/datos.mjs';
 import { crearHtml } from './lib/html.mjs';
 import { crearPaginas } from './lib/paginas.mjs';
+import { actualizarNoticias, paginasNoticias } from './lib/noticias.mjs';
 import { C } from '../src/comun.js';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -81,6 +82,18 @@ historico = actualizarHistorico(historico, datos);
 escribir(HIST, JSON.stringify(historico));
 log(`Histórico: ${Object.keys(historico.dias).length} días`);
 
+// ---------- 3b. Noticias automáticas ----------
+const NOTI = r('historico', 'noticias.json');
+let noticias = existsSync(NOTI) ? JSON.parse(readFileSync(NOTI, 'utf8')) : { lista: [] };
+const notiRemotas = await recuperarPublicado('noticias.json');
+if (notiRemotas?.lista) {
+  const ids = new Set(noticias.lista.map((n) => n.id));
+  noticias = { lista: [...noticias.lista, ...notiRemotas.lista.filter((n) => !ids.has(n.id))] };
+}
+noticias = actualizarNoticias(noticias, datos, historico);
+escribir(NOTI, JSON.stringify(noticias));
+log(`Noticias: ${noticias.lista.length}`);
+
 // ---------- 4. Limpiar y compilar JS/CSS ----------
 rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST, { recursive: true });
@@ -124,11 +137,14 @@ for (const p of datos.provincias) {
 escribir(join(DIST, 'datos', 'lugares.json'), JSON.stringify(lugares));
 escribir(join(DIST, 'datos', 'historico.json'), JSON.stringify(historico));
 escribir(join(DIST, 'datos', 'rutas.json'), JSON.stringify(rutas));
+escribir(join(DIST, 'datos', 'noticias.json'), JSON.stringify(noticias));
 log('Datos del buscador listos');
 
 // ---------- 6. Páginas ----------
 const h = crearHtml(cfg, { assets, datos });
-const paginas = crearPaginas(cfg, { datos, historico }, h);
+const notis = paginasNoticias(cfg, noticias, historico, h);
+const paginas = [...crearPaginas(cfg, { datos, historico, ultimasNoticias: notis.ultimas }, h), ...notis.paginas];
+escribir(join(DIST, 'noticias', 'rss.xml'), notis.rss);
 for (const pg of paginas) {
   const destino = pg.archivo ? join(DIST, pg.archivo) : join(DIST, pg.ruta, 'index.html');
   escribir(destino, pg.html);
@@ -159,7 +175,7 @@ const base = cfg.url.replace(/\/$/, '');
 // Un sitemap por tipo de página, para ver en Search Console qué se indexa de cada grupo.
 // Las páginas con precios cambian cada día; las legales no llevan fecha (no cambian).
 const indexables = paginas.filter((p) => !p.sinMapa);
-const grupos = ['general', 'provincias', 'municipios', 'marcas', 'legal'];
+const grupos = ['general', 'noticias', 'provincias', 'municipios', 'marcas', 'legal'];
 const xml = (s) => s.replace(/&/g, '&amp;');
 const lastmod = (g) => (g === 'legal' ? '' : `<lastmod>${datos.fecha.iso}</lastmod>`);
 const delGrupo = (g) => indexables.filter((p) => (p.tipo || 'general') === g);

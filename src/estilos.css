@@ -301,3 +301,21 @@ figcaption { display: flex; gap: 16px; font-size: .85rem; margin-top: 6px; }
 .pie-legal a, .pie-legal button { color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- Noticias ---------- */
+.notis { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.noti a { display: grid; gap: 6px; height: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; text-decoration: none; color: var(--fg); }
+.noti a:hover { border-color: var(--accent); }
+.noti strong { font-family: var(--f-display); font-size: 1.2rem; line-height: 1.15; font-weight: 600; text-wrap: balance; }
+.noti-ent { color: var(--muted); font-size: .9rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.noti-et { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; color: var(--accent); font-weight: 600; }
+.noticia { display: grid; gap: 16px; max-width: 760px; }
+.noticia h1 { font-size: clamp(1.6rem, 4.5vw, 2.3rem); }
+.noti-meta { color: var(--muted); font-size: .85rem; margin: 0; }
+.noti-cuerpo { display: grid; gap: 12px; }
+.noti-cuerpo p { margin: 0; line-height: 1.65; }
+.noti-cuerpo h2 { margin-top: 10px; }
+.noti-cuerpo h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 6px; }
+.noti-cuerpo .bloque.dos > * { min-width: 0; }
+.archivo { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.archivo time { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; margin-right: 8px; }

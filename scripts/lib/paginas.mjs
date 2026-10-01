@@ -7,6 +7,7 @@ const I95 = 0, IDIE = 1;
 
 export function crearPaginas(cfg, ctx, h) {
   const { datos, historico } = ctx;
+  const ultimasNoticias = ctx.ultimasNoticias || '';
   const f = datos.fecha;
   const hoy = `hoy, ${f.texto}`;
   const nEst = datos.estaciones.length.toLocaleString('es-ES');
@@ -109,6 +110,7 @@ export function crearPaginas(cfg, ctx, h) {
   ${h.medias(nac, { ayer: ayerNac, solo: ['g95', 'diesel', 'g98', 'glp'] })}
 </section>
 
+${ultimasNoticias}
 ${h.afiliado('seguro')}
 
 <section class="bloque dos">
@@ -205,6 +207,7 @@ ${marcasOrden.length ? `<section class="bloque">
     <tbody>${marcasOrden.map((mk) => `<tr><td><a href="${mk.ruta}">${esc(mk.nombre)}</a></td><td class="num">${euro(mk.resumen.g95?.media)}</td><td class="num">${euro(mk.resumen.diesel?.media)}</td><td class="num">${mk.estaciones.length}</td></tr>`).join('')}</tbody>
   </table></div>
 </section>` : ''}
+${ultimasNoticias}
 ${pregs.html}`;
     add('/precio-gasolina-hoy/', h.pagina({
       ruta: '/precio-gasolina-hoy/',
