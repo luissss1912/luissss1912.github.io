@@ -1,0 +1,60 @@
+{
+  "_LEEME": "Único archivo que tienes que tocar. Los campos marcados con PENDIENTE hay que rellenarlos antes de publicar.",
+
+  "nombre": "Surtidor Barato",
+  "url": "https://luissss1912.github.io",
+  "idioma": "es-ES",
+  "emailContacto": "contacto@tudominio.es",
+
+  "legal": {
+    "_nota": "La ley (LSSI) obliga a identificar al titular de una web con anuncios. PENDIENTE",
+    "titular": "Nombre y apellidos del titular",
+    "nif": "00000000X",
+    "domicilio": "Calle, número, código postal y ciudad"
+  },
+
+  "datos": {
+    "apiMinisterio": "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/"
+  },
+
+  "servicios": {
+    "_nota": "Buscador de direcciones y mapa (gratuitos con uso razonable). Si la web crece mucho, cambia a un proveedor de pago.",
+    "direcciones": "https://photon.komoot.io/api/",
+    "direccionesInversa": "https://photon.komoot.io/reverse",
+    "mapa": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "mapaAtribucion": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+  },
+
+  "anuncios": {
+    "_nota": "modoPrueba: true enseña huecos grises donde irán los anuncios. Ponlo en false al publicar.",
+    "modoPrueba": true,
+    "adsenseCliente": "",
+    "anunciosAutomaticos": true,
+    "bloques": {
+      "superior": "",
+      "resultados": "",
+      "lista": "",
+      "articulo": "",
+      "lateral": ""
+    }
+  },
+
+  "afiliados": [
+    {
+      "id": "seguro",
+      "etiqueta": "Ahorra también en el seguro",
+      "titulo": "¿Cuánto pagas por el seguro del coche?",
+      "texto": "Compara aseguradoras en pocos minutos y comprueba si puedes pagar menos por la misma cobertura.",
+      "boton": "Comparar seguros",
+      "url": ""
+    },
+    {
+      "id": "tarjeta",
+      "etiqueta": "Descuento en cada repostaje",
+      "titulo": "Paga menos cada vez que repostes",
+      "texto": "Algunas tarjetas y apps de carburante descuentan céntimos en cada litro. Mira cuál te conviene.",
+      "boton": "Ver descuentos",
+      "url": ""
+    }
+  ]
+}

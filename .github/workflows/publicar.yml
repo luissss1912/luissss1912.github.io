@@ -1,0 +1,49 @@
+# Descarga los precios, genera la web y la publica en GitHub Pages.
+# Se ejecuta sola cada 2 horas de 6:00 a 24:00 (hora peninsular) y cada vez que subes cambios.
+# Actívalo en: Settings > Pages > Build and deployment > Source: GitHub Actions
+name: Publicar web
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '7 4-22/2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Recuperar histórico de precios
+        uses: actions/cache@v4
+        with:
+          path: |
+            historico
+            .cache
+          key: historico-${{ github.run_id }}
+          restore-keys: historico-
+      - run: npm ci
+      - name: Generar la web con los precios de ahora
+        run: npm run construir
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: despliegue
+        uses: actions/deploy-pages@v4
