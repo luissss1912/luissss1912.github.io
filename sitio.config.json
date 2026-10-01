@@ -27,7 +27,7 @@
 
   "anuncios": {
     "_nota": "modoPrueba: true enseña huecos grises donde irán los anuncios. Ponlo en false al publicar.",
-    "modoPrueba": true,
+    "modoPrueba": false,
     "adsenseCliente": "",
     "anunciosAutomaticos": true,
     "bloques": {
