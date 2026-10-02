@@ -139,6 +139,7 @@ function pintar() {
       <div class="t-donde">${esc(e[C.dir])}, ${esc(e[C.mun])} · a ${km(mejor.d)}</div>
       <div class="t-acc">
         <a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar</a>
+        <a class="wa" id="enviarWa" href="${enlaceWa(mejor, c)}" target="_blank" rel="noopener">WhatsApp</a>
         <button type="button" class="sec" id="compartir">Compartir</button>
       </div>
     </div>
@@ -149,7 +150,8 @@ function pintar() {
       <div class="stat n"><b>${r.length}</b><span>Gasolineras comparadas</span></div>
     </div>
   </div>`;
-  $('compartir').onclick = () => compartir(mejor, c);
+  $('compartir').onclick = () => { window.gtag?.('event', 'compartir', { metodo: 'sistema' }); compartir(mejor, c); };
+  $('enviarWa').onclick = () => window.gtag?.('event', 'compartir', { metodo: 'whatsapp' });
   $('listaTitulo').textContent = `${r.length} ${r.length === 1 ? 'gasolinera' : 'gasolineras'} a menos de ${radioTxt()}${filtros ? ' ' + filtros : ''}`;
 
   $('mapa').hidden = S.vista !== 'mapa';
@@ -192,6 +194,13 @@ async function pintarMapa(r) {
   const { pintarMapa: dibujar } = await import('./mapa.js');
   dibujar($('mapa'), SITIO.servicios, S.lugar, S.radio, r, (x) => `<strong>${esc(x.e[C.marca])}</strong><br>${esc(x.e[C.dir])}<b class="p">${euro(x.precio)} €/l</b>${km(x.d)} · <a href="${rutaMaps(x.lat, x.lon)}" target="_blank" rel="noopener">Cómo llegar</a>`);
 }
+
+function textoCompartir(x, c) {
+  const e = x.e;
+  const url = `${location.origin}/?lat=${S.lugar.lat.toFixed(4)}&lon=${S.lugar.lon.toFixed(4)}&l=${encodeURIComponent(S.lugar.n || '')}`;
+  return { url, texto: `⛽ ${c.nombre} a ${euro(x.precio)} €/l en ${e[C.marca]} (${e[C.dir]}, ${e[C.mun]}). La más barata a ${radioTxt()} según ${SITIO.nombre}:` };
+}
+const enlaceWa = (x, c) => { const t = textoCompartir(x, c); return `https://wa.me/?text=${encodeURIComponent(t.texto + ' ' + t.url)}`; };
 
 async function compartir(x, c) {
   const e = x.e;

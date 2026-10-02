@@ -145,6 +145,7 @@ ${ld}
 <main id="contenido" class="wrap">
 ${cuerpo}
 </main>
+${noindex ? '' : `<aside class="wrap compartir-pag"><a class="wa" href="https://wa.me/?text=${encodeURIComponent(titulo + ' ' + abs(ruta))}" target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','compartir',{metodo:'whatsapp_pagina'})">Enviar por WhatsApp</a><a class="tg" href="https://t.me/share/url?url=${encodeURIComponent(abs(ruta))}&amp;text=${encodeURIComponent(titulo)}" target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','compartir',{metodo:'telegram_pagina'})">Telegram</a></aside>`}
 <footer class="pie">
   <div class="wrap">
     <p class="pie-titulo">Gasolineras más baratas por provincia</p>

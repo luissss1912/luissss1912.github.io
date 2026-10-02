@@ -54,7 +54,7 @@ function desfaseMadrid(iso, hora) {
   } catch { return '+01:00'; }
 }
 
-function resumen(estaciones) {
+export function resumen(estaciones) {
   const out = {};
   COMBUSTIBLES.forEach((f, i) => {
     let n = 0, suma = 0, min = null, max = null, barata = null;

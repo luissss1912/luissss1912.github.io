@@ -1,9 +1,13 @@
 // Genera el HTML de cada página del sitio.
 import { COMBUSTIBLES, C, precioDe, esc, euro, distancia, es24h } from '../../src/comun.js';
-import { anterior, serie } from './datos.mjs';
+import { anterior, serie, resumen } from './datos.mjs';
 import { graficoLineas } from './grafico.mjs';
 
 const I95 = 0, IDIE = 1;
+// Nombres por los que la gente busca marcas que han cambiado de nombre
+const ALIAS = { plenergy: 'Plenergy (Plenoil)', moeve: 'Moeve (Cepsa)' };
+const nombreSEO = (mk) => ALIAS[mk.slug] || mk.nombre;
+const MIN_MP = 3; // mínimo de gasolineras de una marca en una provincia para tener página propia
 
 export function crearPaginas(cfg, ctx, h) {
   const { datos, historico } = ctx;
@@ -414,7 +418,7 @@ ${h.hueco('articulo')}`;
         [`¿Cuántas gasolineras ${mk.nombre} hay en España?`, `Hay ${mk.estaciones.length} gasolineras ${esc(mk.nombre)} con precios comunicados al Ministerio en ${filas.length} provincias.`],
       ].filter(Boolean));
       const cuerpo = `${mm.html}
-<header class="cabecera"><h1>Precio de la gasolina en ${esc(mk.nombre)} hoy</h1><p class="sub">Precios de ${hoy} en las ${mk.estaciones.length} gasolineras ${esc(mk.nombre)} de España.</p></header>
+<header class="cabecera"><h1>Precio de la gasolina en ${esc(nombreSEO(mk))} hoy</h1><p class="sub">Precios de ${hoy} en las ${mk.estaciones.length} gasolineras ${esc(mk.nombre)} de España.</p></header>
 ${h.medias(r, { comparar: nac })}
 ${h.hueco('superior')}
 <section class="bloque dos">
@@ -424,16 +428,71 @@ ${h.hueco('superior')}
 ${h.afiliado('tarjeta')}
 <section class="bloque"><h2>Gasolineras ${esc(mk.nombre)} por provincia</h2>
 <div class="tabla-scroll"><table class="tabla prov"><thead><tr><th scope="col">Provincia</th><th scope="col" class="num">Gasolina 95</th><th scope="col" class="num">Diésel</th><th scope="col" class="num">Gasolineras</th></tr></thead>
-<tbody>${filas.map((x) => `<tr><td><a href="${x.p.ruta}">${esc(x.p.nombre)}</a></td><td class="num">${x.n95 ? euro(x.s95 / x.n95) : '—'}</td><td class="num">${x.nd ? euro(x.sd / x.nd) : '—'}</td><td class="num">${x.n}</td></tr>`).join('')}</tbody></table></div></section>
+<tbody>${filas.map((x) => `<tr><td><a href="${x.n >= MIN_MP ? `${mk.ruta}${x.p.slug}/` : x.p.ruta}">${esc(x.p.nombre)}</a></td><td class="num">${x.n95 ? euro(x.s95 / x.n95) : '—'}</td><td class="num">${x.nd ? euro(x.sd / x.nd) : '—'}</td><td class="num">${x.n}</td></tr>`).join('')}</tbody></table></div></section>
 ${h.hueco('articulo')}
 ${pregs.html}`;
       add(mk.ruta, h.pagina({
         ruta: mk.ruta,
-        titulo: h.titulo(...h.conMarca(r.g95 ? `Precio gasolina ${mk.nombre} hoy: ${euro(r.g95.media)} €/l` : `Precio gasolina ${mk.nombre} hoy`, `Precio gasolina ${mk.nombre} hoy`)),
+        titulo: h.titulo(...h.conMarca(r.g95 ? `Precio gasolina ${nombreSEO(mk)} hoy: ${euro(r.g95.media)} €/l` : `Precio gasolina ${nombreSEO(mk)} hoy`, `Precio gasolina ${mk.nombre} hoy`)),
         descripcion: h.descripcion(`Precio de la gasolina y el diésel en ${mk.nombre} hoy, ${f.corto}${r.g95 ? `: gasolina 95 a ${euro(r.g95.media)} €/l de media` : ''}.`, `Las ${mk.nombre} más baratas de España y por provincia.`),
         cuerpo,
         schemas: [mm.schema, pregs.schema],
       }), 'marcas');
+    }
+
+    // ===== MARCA × PROVINCIA ("Plenoil Valencia precio hoy") =====
+    for (const mk of datos.marcas) {
+      const porProv = new Map();
+      for (const e of mk.estaciones) {
+        if (!porProv.has(e[C.prov])) porProv.set(e[C.prov], []);
+        porProv.get(e[C.prov]).push(e);
+      }
+      for (const [provId, est] of porProv) {
+        const p = datos.provMap.get(provId);
+        if (!p || est.length < MIN_MP) continue;
+        const ruta = `${mk.ruta}${p.slug}/`;
+        const r = resumen(est);
+        const rp = p.resumen;
+        const munis = new Map();
+        for (const e of est) munis.set(e[C.mun], (munis.get(e[C.mun]) || 0) + 1);
+        const listaMun = [...munis.entries()].sort((a, b) => b[1] - a[1]);
+        const munRuta = new Map([...p.municipios.values()].map((m) => [m.nombre, m.ruta]));
+        const otras = datos.marcas.filter((o) => o !== mk && o.estaciones.some((e) => e[C.prov] === provId && precioDe(e, I95)))
+          .map((o) => { const ee = o.estaciones.filter((e) => e[C.prov] === provId); return { o, n: ee.length, r: resumen(ee) }; })
+          .filter((x) => x.n >= MIN_MP && x.r.g95).sort((a, b) => a.r.g95.media - b.r.g95.media).slice(0, 8);
+        const dif = r.g95 && rp.g95 ? r.g95.media - rp.g95.media : null;
+        const mm = h.migas([['/marcas/', 'Marcas'], [mk.ruta, mk.nombre], [ruta, p.nombre]]);
+        const pregs = h.faq([
+          r.g95 && [`¿Cuánto cuesta hoy la gasolina en ${mk.nombre} ${p.nombre}?`, `La gasolina 95 en las gasolineras ${esc(mk.nombre)} de ${esc(p.nombre)} cuesta de media ${euro(r.g95.media)} €/l hoy${dif != null ? `, ${Math.abs(dif) < 0.005 ? 'igual que' : dif < 0 ? `${euro(-dif)} €/l menos que` : `${euro(dif)} €/l más que`} la media de la provincia (${euro(rp.g95.media)} €/l)` : ''}.`],
+          r.diesel && [`¿Cuánto cuesta el diésel en ${mk.nombre} ${p.nombre}?`, `El diésel está a ${euro(r.diesel.media)} €/l de media; el más barato, a ${euro(r.diesel.min)} €/l en ${esc(r.diesel.barata[C.dir])} (${esc(r.diesel.barata[C.mun])}).`],
+          r.g95 && [`¿Cuál es la ${mk.nombre} más barata de ${p.nombre}?`, `Hoy es la de ${esc(r.g95.barata[C.dir])}, en ${esc(r.g95.barata[C.mun])}, con la gasolina 95 a ${euro(r.g95.min)} €/l.`],
+          [`¿Cuántas gasolineras ${mk.nombre} hay en ${p.nombre}?`, `Hay ${est.length} gasolineras ${esc(mk.nombre)} con precios en ${listaMun.length === 1 ? '1 municipio' : `${listaMun.length} municipios`} de ${esc(p.nombre)}.`],
+        ].filter(Boolean));
+        const cuerpo = `${mm.html}
+<header class="cabecera"><h1>Precio gasolina ${esc(nombreSEO(mk))} en ${esc(p.nombre)} hoy</h1><p class="sub">Precios de ${hoy} en las ${est.length} gasolineras ${esc(mk.nombre)} de ${esc(p.nombre)}, comparados con la media de la provincia.</p></header>
+${h.medias(r, { comparar: rp, fraseComparar: `la media de ${p.nombre}` })}
+${h.hueco('superior')}
+<section class="bloque dos">
+  <div><h2>${esc(mk.nombre)} con la gasolina 95 más barata en ${esc(p.nombre)}</h2>${h.ranking(est, I95)}</div>
+  <div><h2>${esc(mk.nombre)} con el diésel más barato en ${esc(p.nombre)}</h2>${h.ranking(est, IDIE)}</div>
+</section>
+${h.afiliado('tarjeta')}
+<section class="bloque"><h2>Municipios con gasolineras ${esc(mk.nombre)} en ${esc(p.nombre)}</h2>
+<div class="enlaces">${listaMun.map(([n, c]) => munRuta.get(n) ? `<a href="${munRuta.get(n)}">${esc(n)} <small>${c}</small></a>` : `<span>${esc(n)} (${c})</span>`).join('')}</div></section>
+${otras.length ? `<section class="bloque"><h2>Otras marcas en ${esc(p.nombre)}</h2>
+<div class="tabla-scroll"><table class="tabla prov"><thead><tr><th scope="col">Marca</th><th scope="col" class="num">Gasolina 95</th><th scope="col" class="num">Diésel</th><th scope="col" class="num">Gasolineras</th></tr></thead>
+<tbody>${otras.map((x) => `<tr><td><a href="${x.o.ruta}${p.slug}/">${esc(x.o.nombre)}</a></td><td class="num">${euro(x.r.g95?.media)}</td><td class="num">${euro(x.r.diesel?.media)}</td><td class="num">${x.n}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
+<p class="nota"><a href="${p.ruta}">Todas las gasolineras de ${esc(p.nombre)}</a> · <a href="${mk.ruta}">${esc(mk.nombre)} en toda España</a></p>
+${h.hueco('articulo')}
+${pregs.html}`;
+        add(ruta, h.pagina({
+          ruta,
+          titulo: h.titulo(...h.conMarca(r.g95 ? `${nombreSEO(mk)} ${p.nombre}: gasolina a ${euro(r.g95.media)} €/l hoy` : `Precio ${nombreSEO(mk)} en ${p.nombre} hoy`, `${mk.nombre} ${p.nombre} precio hoy`)),
+          descripcion: h.descripcion(`Precio de la gasolina y el diésel en las ${est.length} gasolineras ${mk.nombre} de ${p.nombre} hoy, ${f.corto}${r.g95 ? `: 95 desde ${euro(r.g95.min)} €/l` : ''}.`, `La ${mk.nombre} más barata de ${p.nombre} y comparación con otras marcas.`),
+          cuerpo,
+          schemas: [mm.schema, pregs.schema],
+        }), 'marcas');
+      }
     }
 
     // Marcas publicadas otros días que hoy no tienen ninguna gasolinera con precios:

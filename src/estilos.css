@@ -327,3 +327,9 @@ figcaption { display: flex; gap: 16px; font-size: .85rem; margin-top: 6px; }
 .aviso-botones button { flex: 1; padding: 10px 14px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
 .aviso-cookies .btn-pri { background: #0a55a6; color: #fff; border: 1px solid #0a55a6; }
 .aviso-cookies .btn-sec { background: transparent; color: inherit; border: 1px solid currentColor; }
+
+/* Compartir por WhatsApp / Telegram */
+a.wa, a.tg { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 8px 14px; font-weight: 600; text-decoration: none; color: #fff; }
+a.wa { background: #1f9d55; }
+a.tg { background: #2a8bd1; }
+.compartir-pag { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding-block: 18px; }
