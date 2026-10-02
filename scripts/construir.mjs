@@ -100,7 +100,7 @@ mkdirSync(DIST, { recursive: true });
 
 const hash = (s) => createHash('sha1').update(s).digest('hex').slice(0, 8);
 const res = await esbuild.build({
-  entryPoints: { app: r('src/app.js'), anuncios: r('src/anuncios.js'), calculadora: r('src/calculadora.js'), estilos: r('src/estilos.css'), mapacss: r('node_modules/leaflet/dist/leaflet.css') },
+  entryPoints: { app: r('src/app.js'), anuncios: r('src/anuncios.js'), calculadora: r('src/calculadora.js'), ruta: r('src/ruta.js'), estilos: r('src/estilos.css'), mapacss: r('node_modules/leaflet/dist/leaflet.css') },
   external: ['/fuentes/*'],
   bundle: true, splitting: true, format: 'esm', minify: true, target: ['es2020'],
   outdir: join(DIST, 'assets'), entryNames: '[name]-[hash]', chunkNames: 'c-[hash]', assetNames: '[name]-[hash]',

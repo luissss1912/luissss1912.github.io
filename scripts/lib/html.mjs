@@ -41,6 +41,7 @@ export function crearHtml(cfg, ctx) {
   // ---------- Navegación y estructura ----------
   const nav = [
     ['/', 'Buscador'],
+    ['/ruta/', 'Ruta'],
     ['/precio-gasolina-hoy/', 'Precio hoy'],
     ['/noticias/', 'Noticias'],
     ['/gasolineras/', 'Provincias'],
@@ -73,7 +74,7 @@ export function crearHtml(cfg, ctx) {
   const piePaginaProvincias = datos.provincias.map((p) => `<a href="${p.ruta}">${esc(p.nombre)}</a>`).join('');
 
   // actualizada: la página muestra precios del día (lleva dateModified con la hora de los datos)
-  function pagina({ ruta, titulo, descripcion, cuerpo, schemas = [], noindex = false, actualizada = true, clase = '', buscador = false, calculadora = false, ogTipo = 'website', ogExtra = '' }) {
+  function pagina({ ruta, titulo, descripcion, cuerpo, schemas = [], noindex = false, actualizada = true, clase = '', buscador = false, calculadora = false, rutaJs = false, ogTipo = 'website', ogExtra = '' }) {
     const adsense = cfg.anuncios.adsenseCliente && !cfg.anuncios.modoPrueba
       ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(cfg.anuncios.adsenseCliente)}" crossorigin="anonymous"></script>`
       : '';
@@ -165,6 +166,7 @@ ${noindex ? '' : `<aside class="wrap compartir-pag"><a class="wa" href="https://
 <script type="module" src="${assets.anuncios}"></script>
 ${buscador ? `<script type="module" src="${assets.app}"></script>` : ''}
 ${calculadora ? `<script type="module" src="${assets.calculadora}"></script>` : ''}
+${rutaJs ? `<script type="module" src="${assets.ruta}"></script>` : ''}
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}</script>
 </body>
 </html>`;

@@ -333,3 +333,19 @@ a.wa, a.tg { display: inline-flex; align-items: center; gap: 6px; border-radius:
 a.wa { background: #1f9d55; }
 a.tg { background: #2a8bd1; }
 .compartir-pag { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding-block: 18px; }
+
+/* Planificador de ruta */
+.ruta-form { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
+.ruta-form .inputwrap { position: relative; display: grid; gap: 4px; }
+.ruta-form label { font-size: .85rem; color: var(--muted); display: grid; gap: 4px; }
+.ruta-form input, .ruta-form select { font: inherit; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); width: 100%; }
+.ruta-btns { display: flex; justify-content: space-between; font-size: .88rem; }
+.ruta-opc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 520px) { .ruta-opc { grid-template-columns: 1fr 1fr; } .ruta-opc label:first-child { grid-column: 1 / -1; } }
+.ruta-form .sugg li { padding: 0; }
+.ruta-form .sugg button { all: unset; display: block; width: 100%; padding: 10px; cursor: pointer; box-sizing: border-box; }
+.ruta-form .sugg button span { color: var(--muted); font-size: .88rem; }
+.ruta-mapa { height: 420px; border-radius: 14px; margin: 16px 0; }
+.h-lista { margin: 22px 0 10px; }
+.lista .pos { min-width: 3.2em; font-size: .78rem; }
+.vacio-tramo { color: var(--muted); }

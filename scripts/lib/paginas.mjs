@@ -647,6 +647,44 @@ ${h.hueco('superior')}
     }
   }
 
+  // ================= RUTA (gasolineras más baratas en un trayecto) =================
+  {
+    const m = h.migas([['/ruta/', 'Gasolineras en tu ruta']]);
+    const ejemplos = [['Valencia', 'Santiago de Compostela'], ['Madrid', 'Valencia'], ['Madrid', 'Málaga'], ['Barcelona', 'Madrid'], ['Sevilla', 'Madrid'], ['Bilbao', 'Madrid'], ['Valencia', 'Barcelona'], ['Alicante', 'Madrid']];
+    const pregs = h.faq([
+      ['¿Cómo encuentro la gasolinera más barata en mi viaje?', 'Escribe el origen y el destino, elige tu combustible y cuánto estás dispuesto a desviarte. Calculamos la ruta en coche y te mostramos la gasolinera más barata de todo el recorrido y la más barata de cada tramo, con el kilómetro en el que está.'],
+      ['¿Compensa desviarse para repostar más barato?', `Con un desvío de 2–3 km y una diferencia de 10 céntimos por litro, en un depósito de 50 litros ahorras unos 5 € y gastas menos de 0,50 € en el desvío. Usa la <a href="/calculadora-gasolina-viaje/">calculadora</a> para tu caso.`],
+      ['¿Dónde es más barato repostar en un viaje largo por España?', 'Suele ser más barato repostar en gasolineras low cost o de supermercado cerca de las salidas de la autovía que en las áreas de servicio. Las de autopista de peaje suelen ser las más caras.'],
+    ]);
+    const cuerpo = `${m.html}
+<header class="cabecera"><h1>Gasolineras más baratas en tu ruta</h1><p class="sub">Dinos de dónde sales y a dónde vas: te decimos dónde repostar más barato en el camino, con precios de ${hoy}.</p></header>
+<form class="ruta-form" id="rForm" autocomplete="off">
+  <div class="inputwrap"><label for="rOrigen">Origen</label><input id="rOrigen" type="text" placeholder="Ej.: Valencia" required></div>
+  <div class="ruta-btns"><button type="button" class="linkbtn" id="rGps">Usar mi ubicación</button><button type="button" class="linkbtn" id="rInvertir" aria-label="Invertir origen y destino">⇅ Invertir</button></div>
+  <div class="inputwrap"><label for="rDestino">Destino</label><input id="rDestino" type="text" placeholder="Ej.: Santiago de Compostela" required></div>
+  <div class="ruta-opc">
+    <label>Combustible<select id="rComb"></select></label>
+    <label>Desvío máximo<select id="rDesvio"><option value="1">1 km</option><option value="3" selected>3 km</option><option value="5">5 km</option><option value="10">10 km</option></select></label>
+    <label>Tramos de<select id="rTramo"><option value="50">50 km</option><option value="100" selected>100 km</option><option value="150">150 km</option><option value="200">200 km</option></select></label>
+  </div>
+  <button type="submit" class="btn">Buscar gasolineras en la ruta</button>
+</form>
+<p class="msg" id="rMsg" role="alert" hidden></p>
+<div id="rRes" class="resultado"></div>
+<div id="rMapa" class="mapa ruta-mapa" hidden></div>
+${h.hueco('resultados')}
+<section class="bloque"><h2>Rutas populares</h2><div class="enlaces">${ejemplos.map(([o, d]) => `<a href="/ruta/?o=${encodeURIComponent(o)}&amp;d=${encodeURIComponent(d)}">${esc(o)} → ${esc(d)}</a>`).join('')}</div></section>
+<p class="nota">También puedes ver las gasolineras de cada <a href="/carreteras/">autovía y carretera</a>.</p>
+${pregs.html}`;
+    add('/ruta/', h.pagina({
+      ruta: '/ruta/', rutaJs: true,
+      titulo: h.titulo(...h.conMarca('Gasolineras más baratas en tu ruta: calcula dónde repostar', 'Gasolineras en tu ruta')),
+      descripcion: h.descripcion('Calcula tu viaje en coche y descubre las gasolineras más baratas del camino, tramo a tramo, con precios oficiales de hoy.', 'Ejemplo: de Valencia a Galicia.'),
+      cuerpo,
+      schemas: [m.schema, pregs.schema],
+    }));
+  }
+
   // ================= CALCULADORA =================
   {
     const m = h.migas([['/calculadora-gasolina-viaje/', 'Calculadora de gasolina']]);
