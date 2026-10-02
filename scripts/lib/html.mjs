@@ -149,6 +149,7 @@ ${noindex ? '' : `<aside class="wrap compartir-pag"><a class="wa" href="https://
 <footer class="pie">
   <div class="wrap">
     <p class="pie-titulo">Gasolineras más baratas por provincia</p>
+    <nav class="pie-prov" aria-label="Búsquedas"><a href="/gasolineras-24-horas/">Gasolineras 24 horas</a><a href="/gasolineras-low-cost/">Gasolineras low cost</a><a href="/carreteras/">Gasolineras en autovías</a><a href="/marcas/">Precios por marca</a><a href="/precio-gasolina-hoy/">Precio gasolina hoy</a><a href="/noticias/">Noticias</a></nav>
     <nav class="pie-prov" aria-label="Provincias">${piePaginaProvincias}</nav>
     <p>Precios oficiales del <a href="https://geoportalgasolineras.es/" rel="noopener" target="_blank">Ministerio para la Transición Ecológica y el Reto Demográfico</a>, actualizados el ${esc(f.texto)}${f.hora ? ' a las ' + f.hora : ''}. Las gasolineras pueden haber cambiado el precio después: compruébalo en el surtidor.</p>
     <nav class="pie-legal" aria-label="Legal">
