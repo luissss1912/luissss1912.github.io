@@ -28,7 +28,7 @@
   "anuncios": {
     "_nota": "modoPrueba: true enseña huecos grises donde irán los anuncios. Ponlo en false al publicar.",
     "modoPrueba": false,
-    "adsenseCliente": "",
+    "adsenseCliente": "ca-pub-2241531496057280",
     "anunciosAutomaticos": true,
     "bloques": {
       "superior": "",

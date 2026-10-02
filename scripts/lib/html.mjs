@@ -116,6 +116,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 <link rel="preload" href="/fuentes/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fuentes/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${assets.css}">
+${cfg.anuncios.adsenseCliente ? `<meta name="google-adsense-account" content="${esc(cfg.anuncios.adsenseCliente)}">` : ''}
 ${adsense}
 ${ld}
 </head>
