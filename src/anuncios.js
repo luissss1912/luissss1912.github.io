@@ -28,14 +28,22 @@ const CLAVE = 'sb-analitica';
 const leerEleccion = () => { try { return localStorage.getItem(CLAVE); } catch { return null; } };
 const guardarEleccion = (v) => { try { localStorage.setItem(CLAVE, v); } catch {} };
 
+// El aviso de Google está activo si se está mostrando o si el usuario ya decidió en él.
+// (Antes de que AdSense apruebe la web, el CMP carga pero no muestra nada.)
 function cmpGoogleActivo() {
   return new Promise((res) => {
     if (typeof window.__tcfapi !== 'function') return res(false);
-    let hecho = false;
+    const fin = setTimeout(() => res(false), 2000);
     try {
-      window.__tcfapi('ping', 2, (d) => { hecho = true; res(!!(d && d.cmpLoaded && d.gdprApplies !== undefined)); });
-    } catch { return res(false); }
-    setTimeout(() => { if (!hecho) res(false); }, 1500);
+      window.__tcfapi('ping', 2, (p) => {
+        if (p && p.displayStatus === 'visible') { clearTimeout(fin); return res(true); }
+        window.__tcfapi('addEventListener', 2, (d, ok) => {
+          clearTimeout(fin);
+          res(!!(ok && d && d.tcString));
+          if (d && d.listenerId != null) try { window.__tcfapi('removeEventListener', 2, () => {}, d.listenerId); } catch {}
+        });
+      });
+    } catch { clearTimeout(fin); res(false); }
   });
 }
 
