@@ -82,6 +82,7 @@ export function crearHtml(cfg, ctx) {
     const analitica = ga4 ? `<script>
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
+try{if(localStorage.getItem('sb-analitica')==='si')gtag('consent','update',{analytics_storage:'granted'});}catch(e){}
 gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);
 gtag('js',new Date());gtag('config','${esc(ga4)}');
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(!a)return;

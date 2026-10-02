@@ -319,3 +319,11 @@ figcaption { display: flex; gap: 16px; font-size: .85rem; margin-top: 6px; }
 .noti-cuerpo .bloque.dos > * { min-width: 0; }
 .archivo { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .archivo time { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; margin-right: 8px; }
+
+/* Aviso propio de cookies de estadísticas */
+.aviso-cookies { position: fixed; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 1000; max-width: 560px; margin-inline: auto; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 14px 16px; font-size: .92rem; }
+.aviso-cookies p { margin: 0 0 10px; }
+.aviso-botones { display: flex; gap: 10px; }
+.aviso-botones button { flex: 1; padding: 10px 14px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+.aviso-cookies .btn-pri { background: #0a55a6; color: #fff; border: 1px solid #0a55a6; }
+.aviso-cookies .btn-sec { background: transparent; color: inherit; border: 1px solid currentColor; }

@@ -526,15 +526,17 @@ ${pregs.html}`;
 <li><b>Tu ubicación</b>, solo si pulsas «Cerca de mí» y das permiso. Se usa en tu navegador para calcular qué gasolineras tienes cerca y no la guardamos. Para mostrarte el nombre de la calle, las coordenadas se envían al servicio Photon (Komoot).</li>
 <li><b>Las direcciones que escribes</b> en el buscador, que se envían a Photon (Komoot) para localizarlas.</li>
 <li><b>Tus preferencias</b> (último lugar buscado, combustible, gasolineras favoritas), que se guardan solo en tu navegador.</li>
+<li><b>Estadísticas de uso</b>: si lo aceptas, Google Analytics registra de forma agregada qué páginas se visitan, desde qué tipo de dispositivo y cómo se usa el buscador, para mejorar la web. Si lo rechazas, no se guardan cookies de análisis.</li>
 <li><b>Datos de navegación y publicidad</b>: Google AdSense puede usar cookies e identificadores para mostrar anuncios y medir su rendimiento, siempre con tu consentimiento cuando la ley lo exige.</li>
 </ul>
-<h2>Base legal</h2><p>Tu consentimiento para la ubicación y las cookies publicitarias, y nuestro interés legítimo en que el servicio funcione.</p>
-<h2>Terceros</h2><p>Google (publicidad, <a href="https://policies.google.com/technologies/ads?hl=es" rel="noopener" target="_blank">más información</a>), Komoot/Photon (búsqueda de direcciones) y OpenStreetMap (mapas). Algunos pueden tratar datos fuera del Espacio Económico Europeo con las garantías previstas en el RGPD.</p>
+<h2>Base legal</h2><p>Tu consentimiento para la ubicación, las estadísticas y las cookies publicitarias, y nuestro interés legítimo en que el servicio funcione.</p>
+<h2>Terceros</h2><p>Google (publicidad y estadísticas, <a href="https://policies.google.com/technologies/ads?hl=es" rel="noopener" target="_blank">más información</a>), Komoot/Photon (búsqueda de direcciones) y OpenStreetMap (mapas). Algunos pueden tratar datos fuera del Espacio Económico Europeo con las garantías previstas en el RGPD.</p>
 <h2>Tus derechos</h2><p>Puedes acceder, rectificar, suprimir, oponerte, limitar y portar tus datos escribiendo a ${esc(cfg.emailContacto)}, y reclamar ante la Agencia Española de Protección de Datos (aepd.es).</p>`);
 
   legal('/cookies/', 'Política de cookies', `Política de cookies de ${cfg.nombre}: qué se guarda en tu navegador, qué cookies usa la publicidad y cómo cambiar tu consentimiento.`, `
 <p>Usamos almacenamiento en tu navegador para recordar tus preferencias (lugar, combustible y favoritas). Es necesario para que el buscador funcione como esperas y no requiere consentimiento.</p>
 <p>Nuestros socios publicitarios (Google AdSense) usan cookies para mostrar anuncios, limitar cuántas veces ves cada uno y medir su rendimiento. Solo se activan las cookies publicitarias personalizadas si das tu consentimiento en el aviso que aparece al entrar. Puedes cambiar tu elección cuando quieras desde «Gestionar cookies», al pie de la página.</p>
+<p>Si lo aceptas, usamos Google Analytics (cookies <code>_ga</code> y <code>_ga_*</code>, duración hasta 2 años) para obtener estadísticas de uso agregadas. Si lo rechazas, Google Analytics funciona sin cookies y sin identificarte.</p>
 <p>También puedes borrar o bloquear las cookies desde la configuración de tu navegador.</p>`);
 
   // 404

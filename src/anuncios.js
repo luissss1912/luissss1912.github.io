@@ -21,15 +21,58 @@ function rellenar(raiz = document) {
 window.rellenarAnuncios = rellenar;
 rellenar();
 
-// Botón «Gestionar cookies» (mensaje de consentimiento de Google)
+// Consentimiento de estadísticas (Google Analytics).
+// Mientras el aviso de Google (CMP de AdSense) no esté activo, mostramos un aviso propio
+// solo para las cookies de análisis. Cuando el aviso de Google funcione, él gestiona todo.
+const CLAVE = 'sb-analitica';
+const leerEleccion = () => { try { return localStorage.getItem(CLAVE); } catch { return null; } };
+const guardarEleccion = (v) => { try { localStorage.setItem(CLAVE, v); } catch {} };
+
+function cmpGoogleActivo() {
+  return new Promise((res) => {
+    if (typeof window.__tcfapi !== 'function') return res(false);
+    let hecho = false;
+    try {
+      window.__tcfapi('ping', 2, (d) => { hecho = true; res(!!(d && d.cmpLoaded && d.gdprApplies !== undefined)); });
+    } catch { return res(false); }
+    setTimeout(() => { if (!hecho) res(false); }, 1500);
+  });
+}
+
+function avisoAnalitica() {
+  if (document.getElementById('avisoCookies')) return;
+  const d = document.createElement('div');
+  d.id = 'avisoCookies';
+  d.className = 'aviso-cookies';
+  d.setAttribute('role', 'dialog');
+  d.setAttribute('aria-label', 'Cookies de estadísticas');
+  d.innerHTML = `<p>Usamos cookies de estadísticas (Google Analytics) para saber cuánta gente usa la web y mejorarla. No se usan para publicidad. <a href="/cookies/">Más información</a></p>
+  <div class="aviso-botones"><button type="button" class="btn-sec" data-v="no">Rechazar</button><button type="button" class="btn-pri" data-v="si">Aceptar</button></div>`;
+  d.addEventListener('click', (e) => {
+    const v = e.target.closest('button')?.dataset.v;
+    if (!v) return;
+    guardarEleccion(v);
+    window.gtag?.('consent', 'update', { analytics_storage: v === 'si' ? 'granted' : 'denied' });
+    d.remove();
+  });
+  document.body.appendChild(d);
+}
+
 if (cfg.cliente && !cfg.modoPrueba) {
   const b = document.getElementById('gestionarCookies');
-  if (b) {
-    b.hidden = false;
-    b.addEventListener('click', () => {
+  if (b) b.hidden = false;
+  const listo = (fn) => (document.readyState === 'complete' ? fn() : addEventListener('load', fn));
+  listo(() => setTimeout(async () => {
+    const google = await cmpGoogleActivo();
+    if (!google && window.gtag && leerEleccion() === null) avisoAnalitica();
+  }, 2500));
+  b?.addEventListener('click', async () => {
+    if (await cmpGoogleActivo()) {
       window.googlefc = window.googlefc || {};
       window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
       window.googlefc.callbackQueue.push({ CONSENT_API_READY: () => window.googlefc.showRevocationMessage() });
-    });
-  }
+    } else {
+      avisoAnalitica();
+    }
+  });
 }
