@@ -17,6 +17,7 @@ const guardarLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); 
 Object.assign(S, leer('sb-estado', {}));
 S.vistos = PAG;
 let favs = leer('sb-favs', []); // [{id, prov}]
+const radioTxt = () => (S.radio < 1 ? Math.round(S.radio * 1000) + ' m' : S.radio + ' km');
 const guardar = () => guardarLS('sb-estado', { comb: S.comb, radio: S.radio, abiertas: S.abiertas, h24: S.h24, orden: S.orden, vista: S.vista, lugar: S.lugar });
 
 let INDICE = null;
@@ -116,7 +117,7 @@ function pintar() {
   if (!S.lugar) return;
   const filtros = [S.abiertas && 'abiertas ahora', S.h24 && 'abiertas 24 horas'].filter(Boolean).join(' y ');
   if (!r.length) {
-    $('resultado').innerHTML = `<div class="vacio"><strong>No hay gasolineras con ${c.nombre}${filtros ? ' ' + filtros : ''} a menos de ${S.radio} km</strong><span>Amplía el radio${filtros ? ' o quita los filtros' : ''}.</span></div>`;
+    $('resultado').innerHTML = `<div class="vacio"><strong>No hay gasolineras con ${c.nombre}${filtros ? ' ' + filtros : ''} a menos de ${radioTxt()}</strong><span>Amplía el radio${filtros ? ' o quita los filtros' : ''}.</span></div>`;
     $('listaTitulo').textContent = 'Sin resultados';
     $('lista').innerHTML = '';
     $('mas').hidden = true;
@@ -132,7 +133,7 @@ function pintar() {
   $('resultado').innerHTML = `
   <div class="totem">
     <div>
-      <span class="t-f">${c.nombre} · la más barata a ${S.radio} km</span>
+      <span class="t-f">${c.nombre} · la más barata a ${radioTxt()}</span>
       <b class="t-p">${euro(mejor.precio)}<small>€/l</small></b>
       <div class="t-quien">${esc(e[C.marca])}</div>
       <div class="t-donde">${esc(e[C.dir])}, ${esc(e[C.mun])} · a ${km(mejor.d)}</div>
@@ -149,7 +150,7 @@ function pintar() {
     </div>
   </div>`;
   $('compartir').onclick = () => compartir(mejor, c);
-  $('listaTitulo').textContent = `${r.length} gasolineras a menos de ${S.radio} km${filtros ? ' ' + filtros : ''}`;
+  $('listaTitulo').textContent = `${r.length} gasolineras a menos de ${radioTxt()}${filtros ? ' ' + filtros : ''}`;
 
   $('mapa').hidden = S.vista !== 'mapa';
   $('lista').hidden = S.vista === 'mapa';
@@ -195,7 +196,7 @@ async function pintarMapa(r) {
 async function compartir(x, c) {
   const e = x.e;
   const url = `${location.origin}/?lat=${S.lugar.lat.toFixed(4)}&lon=${S.lugar.lon.toFixed(4)}&l=${encodeURIComponent(S.lugar.n || '')}`;
-  const texto = `⛽ ${c.nombre} a ${euro(x.precio)} €/l en ${e[C.marca]} (${e[C.dir]}, ${e[C.mun]}). La más barata a ${S.radio} km según ${SITIO.nombre}:`;
+  const texto = `⛽ ${c.nombre} a ${euro(x.precio)} €/l en ${e[C.marca]} (${e[C.dir]}, ${e[C.mun]}). La más barata a ${radioTxt()} según ${SITIO.nombre}:`;
   if (navigator.share) {
     try { await navigator.share({ title: SITIO.nombre, text: texto, url }); return; } catch (err) { if (err?.name === 'AbortError') return; }
   }

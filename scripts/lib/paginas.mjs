@@ -78,7 +78,7 @@ export function crearPaginas(cfg, ctx, h) {
     <div class="chips" id="fuels" role="group" aria-label="Combustible">${COMBUSTIBLES.map((c, i) => `<button type="button" class="chip" data-f="${c.k}" aria-pressed="${i === 0}">${c.nombre}</button>`).join('')}</div>
     <div class="fila2">
       <label class="sel"><span>Radio</span>
-        <select id="radio">${[3, 5, 10, 20, 50].map((r) => `<option value="${r}"${r === 10 ? ' selected' : ''}>${r} km</option>`).join('')}</select>
+        <select id="radio">${[0.5, 1, 3, 5, 10, 20, 50].map((r) => `<option value="${r}"${r === 10 ? ' selected' : ''}>${r < 1 ? r * 1000 + ' m' : r + ' km'}</option>`).join('')}</select>
       </label>
       <button type="button" class="toggle" id="fAbiertas" aria-pressed="false">Abiertas ahora</button>
       <button type="button" class="toggle" id="f24" aria-pressed="false">24 horas</button>
