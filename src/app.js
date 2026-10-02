@@ -150,7 +150,7 @@ function pintar() {
     </div>
   </div>`;
   $('compartir').onclick = () => compartir(mejor, c);
-  $('listaTitulo').textContent = `${r.length} gasolineras a menos de ${radioTxt()}${filtros ? ' ' + filtros : ''}`;
+  $('listaTitulo').textContent = `${r.length} ${r.length === 1 ? 'gasolinera' : 'gasolineras'} a menos de ${radioTxt()}${filtros ? ' ' + filtros : ''}`;
 
   $('mapa').hidden = S.vista !== 'mapa';
   $('lista').hidden = S.vista === 'mapa';
