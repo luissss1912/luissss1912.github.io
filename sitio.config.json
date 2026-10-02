@@ -7,10 +7,10 @@
   "emailContacto": "contacto@surtidorbarato.es",
 
   "legal": {
-    "_nota": "La ley (LSSI) obliga a identificar al titular de una web con anuncios. PENDIENTE",
-    "titular": "Nombre y apellidos del titular",
-    "nif": "00000000X",
-    "domicilio": "Calle, número, código postal y ciudad"
+    "_nota": "La ley (LSSI) obliga a identificar al titular de una web con anuncios.",
+    "titular": "Luis Ramos Sanz",
+    "nif": "48413632N",
+    "domicilio": "L'Eliana (Valencia)"
   },
 
   "datos": {
