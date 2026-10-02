@@ -77,6 +77,18 @@ export function crearHtml(cfg, ctx) {
     const adsense = cfg.anuncios.adsenseCliente && !cfg.anuncios.modoPrueba
       ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${esc(cfg.anuncios.adsenseCliente)}" crossorigin="anonymous"></script>`
       : '';
+    // Google Analytics 4 con Consent Mode v2: todo denegado hasta que el usuario acepte en el aviso de cookies de Google.
+    const ga4 = cfg.analitica?.ga4 || '';
+    const analitica = ga4 ? `<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
+gtag('set','ads_data_redaction',true);gtag('set','url_passthrough',true);
+gtag('js',new Date());gtag('config','${esc(ga4)}');
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(!a)return;
+if(/google\\.[a-z.]+\\/maps/.test(a.href))gtag('event','como_llegar',{pagina:location.pathname});
+else if(a.closest('[data-afiliado]'))gtag('event','clic_afiliado',{afiliado:a.closest('[data-afiliado]').dataset.afiliado});});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=${esc(ga4)}"></script>` : '';
     const webPage = !noindex && {
       '@context': 'https://schema.org', '@type': 'WebPage', '@id': abs(ruta), url: abs(ruta), name: titulo,
       description: descripcion, inLanguage: cfg.idioma || 'es-ES', isPartOf: { '@id': abs('/#web') },
@@ -117,6 +129,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 <link rel="preload" href="/fuentes/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${assets.css}">
 ${cfg.anuncios.adsenseCliente ? `<meta name="google-adsense-account" content="${esc(cfg.anuncios.adsenseCliente)}">` : ''}
+${analitica}
 ${adsense}
 ${ld}
 </head>

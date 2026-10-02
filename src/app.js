@@ -84,6 +84,7 @@ async function buscar() {
   if (!S.lugar) return;
   const gen = ++generacion;
   const i = combIdx();
+  window.gtag?.('event', 'buscar_gasolineras', { combustible: COMBUSTIBLES[i]?.corto, radio_km: S.radio });
   $('resultado').innerHTML = '<div class="vacio"><strong>Buscando gasolineras…</strong></div>';
   let todas;
   try {

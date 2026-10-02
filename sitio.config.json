@@ -25,6 +25,11 @@
     "mapaAtribucion": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
   },
 
+  "analitica": {
+    "_nota": "ID de medición de Google Analytics 4 (G-...). Vacío = sin estadísticas.",
+    "ga4": "G-TZFJJLSBQL"
+  },
+
   "anuncios": {
     "_nota": "modoPrueba: true enseña huecos grises donde irán los anuncios. Ponlo en false al publicar.",
     "modoPrueba": false,
