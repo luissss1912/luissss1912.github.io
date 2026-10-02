@@ -11,7 +11,7 @@ const rutaMaps = (lat, lon) => `https://www.google.com/maps/dir/?api=1&destinati
 const icoEstrella = (on) => (on ? '★' : '☆');
 
 // ---------- Estado ----------
-const S = { comb: 'g95', radio: 10, abiertas: false, h24: false, orden: 'precio', vista: 'lista', lugar: null, vistos: PAG };
+const S = { comb: 'g95', radio: 3, abiertas: false, h24: false, orden: 'precio', vista: 'lista', lugar: null, vistos: PAG };
 const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const guardarLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 Object.assign(S, leer('sb-estado', {}));
