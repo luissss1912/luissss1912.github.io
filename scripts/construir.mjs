@@ -186,6 +186,7 @@ for (const g of grupos) {
 escribir(join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${grupos.map((g) => `<sitemap><loc>${base}/sitemap-${g}.xml</loc>${lastmod(g)}</sitemap>`).join('\n')}\n</sitemapindex>\n`);
 log(`Sitemaps: ${grupos.map((g) => `${g} ${delGrupo(g).length}`).join(', ')}`);
 // /datos/ no se bloquea: el buscador lo necesita y Google debe poder ver la página completa
+if (cfg.indexNow?.clave) escribir(join(DIST, `${cfg.indexNow.clave}.txt`), cfg.indexNow.clave);
 escribir(join(DIST, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${base}/sitemap.xml\n`);
 const pub = (cfg.anuncios.adsenseCliente || '').replace(/^ca-/, '');
 escribir(join(DIST, 'ads.txt'), pub ? `google.com, ${pub}, DIRECT, f08c47fec0942fa0\n` : '# Rellena "adsenseCliente" en sitio.config.json\n');

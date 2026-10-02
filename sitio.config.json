@@ -30,6 +30,11 @@
     "ga4": "G-TZFJJLSBQL"
   },
 
+  "indexNow": {
+    "_nota": "Clave para avisar a Bing/Yandex de las páginas actualizadas (IndexNow). No hace falta tocarla.",
+    "clave": "7acc66d9a791cfd25742d3fb5ee9e6ae"
+  },
+
   "anuncios": {
     "_nota": "modoPrueba: true enseña huecos grises donde irán los anuncios. Ponlo en false al publicar.",
     "modoPrueba": false,

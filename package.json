@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "construir": "node scripts/construir.mjs",
+    "construir": "node scripts/construir.mjs && node scripts/indexnow.mjs",
     "ver": "node scripts/construir.mjs && node scripts/servir.mjs",
     "servir": "node scripts/servir.mjs"
   },
