@@ -1,5 +1,5 @@
 // Genera el HTML de cada página del sitio.
-import { COMBUSTIBLES, C, precioDe, esc, euro, distancia, es24h } from '../../src/comun.js';
+import { COMBUSTIBLES, C, precioDe, esc, euro, distancia, es24h, slug } from '../../src/comun.js';
 import { anterior, serie, resumen } from './datos.mjs';
 import { graficoLineas } from './grafico.mjs';
 
@@ -264,6 +264,7 @@ ${h.hueco('articulo')}`;
   <h1>Gasolineras más baratas en ${esc(p.nombre)} hoy</h1>
   <p class="sub">Precios de ${hoy} en las ${p.estaciones.length} gasolineras de ${esc(p.nombre)}.${r.g95 ? ` La gasolina 95 cuesta de media ${euro(r.g95.media)} €/l y la más barata está a ${euro(r.g95.min)} €/l.` : ''}</p>
   <a class="btn sec" href="${h.enlaceBuscador((p.bbox[0] + p.bbox[2]) / 2, (p.bbox[1] + p.bbox[3]) / 2, p.nombre)}">Buscar cerca de mí en el mapa</a>
+  <div class="enlaces" style="margin-top:10px"><a href="/gasolineras-24-horas/${p.slug}/">24 horas</a><a href="/gasolineras-low-cost/${p.slug}/">Low cost</a><a href="/carreteras/">Carreteras</a></div>
 </header>
 ${h.medias(r, ayerP ? { ayer: ayerP } : { comparar: nac })}
 ${h.hueco('superior')}
@@ -506,6 +507,143 @@ ${pregs.html}`;
         noindex: true,
         cuerpo: `${mm.html}<article class="texto"><h1>Precio de la gasolina en ${esc(mk.nombre)} hoy</h1><p>Hoy, ${f.texto}, ninguna gasolinera ${esc(mk.nombre)} ha comunicado precios al Ministerio.</p><p><a class="btn" href="/marcas/">Ver precios de otras marcas</a> <a class="btn sec" href="/">Buscar la gasolinera más barata cerca de mí</a></p></article>`,
       }), 'marcas', { sinMapa: true });
+    }
+  }
+
+  // ================= LISTADOS: 24 HORAS, LOW COST Y CARRETERAS =================
+  {
+    const TRADICIONALES = new Set(['repsol', 'moeve', 'cepsa', 'bp', 'shell', 'galp', 'petronor', 'campsa', 'eni', 'agip', 'q8', 'disa', 'tamoil', 'avia', 'texaco', 'total', 'totalenergies']);
+    const esLowCost = (e) => !TRADICIONALES.has(slug(e[C.marca] || ''));
+    const pagListado = ({ ruta, migas, h1, sub, est, titulo, descripcion, faqs, extra = '', tipo, enlaces = '' }) => {
+      const mm = h.migas(migas);
+      const r = resumen(est);
+      const pregs = h.faq(faqs(r).filter(Boolean));
+      const cuerpo = `${mm.html}
+<header class="cabecera"><h1>${h1}</h1><p class="sub">${sub}</p></header>
+${h.medias(r, { comparar: nac })}
+${h.hueco('superior')}
+<section class="bloque dos">
+  <div><h2>Gasolina 95 más barata</h2>${h.ranking(est, I95)}</div>
+  <div><h2>Diésel más barato</h2>${h.ranking(est, IDIE)}</div>
+</section>
+${extra}
+${h.afiliado('seguro')}
+${est.length > 10 ? `<section class="bloque"><h2>Todas (${est.length})</h2>${h.tablaEstaciones(est.slice().sort((a, b) => (precioDe(a, I95) || 9) - (precioDe(b, I95) || 9)).slice(0, 150))}</section>` : ''}
+${enlaces}
+${h.hueco('articulo')}
+${pregs.html}`;
+      add(ruta, h.pagina({ ruta, titulo, descripcion, cuerpo, schemas: [mm.schema, pregs.schema] }), tipo);
+      return r;
+    };
+    const chipsProv = (base, cuenta) => `<section class="bloque"><h2>Por provincia</h2><div class="enlaces">${datos.provincias.filter((p) => cuenta(p) > 0).map((p) => `<a href="${base}${p.slug}/">${esc(p.nombre)} <small>${cuenta(p)}</small></a>`).join('')}</div></section>`;
+
+    // ---- 24 horas ----
+    const es24 = (e) => es24h(e[C.horario]);
+    const n24 = (p) => p.estaciones.filter(es24).length;
+    const todas24 = datos.estaciones.filter(es24);
+    pagListado({
+      ruta: '/gasolineras-24-horas/', tipo: 'general',
+      migas: [['/gasolineras-24-horas/', 'Gasolineras 24 horas']],
+      h1: 'Gasolineras 24 horas más baratas de España hoy',
+      sub: `Las ${todas24.length.toLocaleString('es-ES')} gasolineras abiertas las 24 horas, ${hoy}, ordenadas por precio.`,
+      est: todas24,
+      titulo: h.titulo(...h.conMarca('Gasolineras 24 horas más baratas hoy', 'Gasolineras 24 horas baratas')),
+      descripcion: h.descripcion(`Gasolineras abiertas 24 horas más baratas de España hoy, ${f.corto}.`, 'Busca por provincia la más barata abierta de noche.'),
+      faqs: (r) => [r.g95 && ['¿Cuál es la gasolinera 24 horas más barata de España?', `Hoy es ${esc(r.g95.barata[C.marca])} en ${esc(r.g95.barata[C.dir])} (${esc(r.g95.barata[C.mun])}), con la gasolina 95 a ${euro(r.g95.min)} €/l.`],
+        ['¿Cuántas gasolineras abren 24 horas?', `Hay ${todas24.length} gasolineras con horario de 24 horas todos los días según los datos del Ministerio.`]],
+      enlaces: chipsProv('/gasolineras-24-horas/', n24),
+    });
+    for (const p of datos.provincias) {
+      const est = p.estaciones.filter(es24);
+      if (est.length < 3) continue;
+      pagListado({
+        ruta: `/gasolineras-24-horas/${p.slug}/`, tipo: 'provincias',
+        migas: [['/gasolineras-24-horas/', 'Gasolineras 24 horas'], [`/gasolineras-24-horas/${p.slug}/`, p.nombre]],
+        h1: `Gasolineras 24 horas en ${esc(p.nombre)}`,
+        sub: `Las ${est.length} gasolineras de ${esc(p.nombre)} abiertas las 24 horas, ${hoy}, de la más barata a la más cara.`,
+        est,
+        titulo: h.titulo(...h.conMarca(`Gasolineras 24 horas en ${p.nombre}: más baratas hoy`, `Gasolineras 24 horas ${p.nombre}`)),
+        descripcion: h.descripcion(`Gasolineras abiertas 24 horas en ${p.nombre} hoy, ${f.corto}, ordenadas por precio.`, `Las ${est.length} que no cierran nunca.`),
+        faqs: (r) => [r.g95 && [`¿Cuál es la gasolinera 24 horas más barata de ${p.nombre}?`, `${esc(r.g95.barata[C.marca])} en ${esc(r.g95.barata[C.dir])} (${esc(r.g95.barata[C.mun])}), con la gasolina 95 a ${euro(r.g95.min)} €/l hoy.`],
+          [`¿Cuántas gasolineras 24 horas hay en ${p.nombre}?`, `Hay ${est.length} gasolineras abiertas las 24 horas todos los días.`]],
+        enlaces: `<p class="nota"><a href="${p.ruta}">Todas las gasolineras de ${esc(p.nombre)}</a> · <a href="/gasolineras-low-cost/${p.slug}/">Low cost en ${esc(p.nombre)}</a></p>`,
+      });
+    }
+
+    // ---- Low cost ----
+    const nLc = (p) => p.estaciones.filter(esLowCost).length;
+    const todasLc = datos.estaciones.filter(esLowCost);
+    pagListado({
+      ruta: '/gasolineras-low-cost/', tipo: 'general',
+      migas: [['/gasolineras-low-cost/', 'Gasolineras low cost']],
+      h1: 'Gasolineras low cost más baratas de España hoy',
+      sub: `Gasolineras low cost, de supermercado e independientes (sin Repsol, Moeve/Cepsa, BP, Shell, Galp…), ${hoy}.`,
+      est: todasLc,
+      titulo: h.titulo(...h.conMarca('Gasolineras low cost más baratas hoy', 'Gasolineras low cost')),
+      descripcion: h.descripcion(`Gasolineras low cost e independientes más baratas de España hoy, ${f.corto}: Ballenoil, Plenergy (Plenoil), Petroprix, supermercados y más.`),
+      faqs: (r) => [['¿Qué es una gasolinera low cost?', 'Son gasolineras automáticas o de marcas pequeñas, sin tienda ni personal en muchos casos, que suelen vender más barato que las grandes marcas. El combustible cumple la misma normativa de calidad.'],
+        r.g95 && nac.g95 && ['¿Cuánto más barata es una gasolinera low cost?', `Hoy la gasolina 95 cuesta de media ${euro(r.g95.media)} €/l en estas gasolineras, frente a ${euro(nac.g95.media)} €/l de media en España.`]],
+      enlaces: chipsProv('/gasolineras-low-cost/', nLc),
+    });
+    for (const p of datos.provincias) {
+      const est = p.estaciones.filter(esLowCost);
+      if (est.length < 3) continue;
+      pagListado({
+        ruta: `/gasolineras-low-cost/${p.slug}/`, tipo: 'provincias',
+        migas: [['/gasolineras-low-cost/', 'Gasolineras low cost'], [`/gasolineras-low-cost/${p.slug}/`, p.nombre]],
+        h1: `Gasolineras low cost en ${esc(p.nombre)}`,
+        sub: `Las ${est.length} gasolineras low cost, de supermercado e independientes de ${esc(p.nombre)}, ${hoy}.`,
+        est,
+        titulo: h.titulo(...h.conMarca(`Gasolineras low cost en ${p.nombre} hoy`, `Low cost ${p.nombre}`)),
+        descripcion: h.descripcion(`Gasolineras low cost más baratas de ${p.nombre} hoy, ${f.corto}.`, `${est.length} gasolineras ordenadas por precio.`),
+        faqs: (r) => [r.g95 && [`¿Cuál es la gasolinera low cost más barata de ${p.nombre}?`, `${esc(r.g95.barata[C.marca])} en ${esc(r.g95.barata[C.dir])} (${esc(r.g95.barata[C.mun])}), con la gasolina 95 a ${euro(r.g95.min)} €/l hoy.`]],
+        enlaces: `<p class="nota"><a href="${p.ruta}">Todas las gasolineras de ${esc(p.nombre)}</a> · <a href="/gasolineras-24-horas/${p.slug}/">24 horas en ${esc(p.nombre)}</a></p>`,
+      });
+    }
+
+    // ---- Carreteras (A-3, AP-7, N-332...) a partir de la dirección ----
+    const NOMBRES = { 'A-1': 'Autovía del Norte', 'A-2': 'Autovía del Nordeste', 'A-3': 'Autovía del Este, Madrid–Valencia', 'A-4': 'Autovía del Sur', 'A-5': 'Autovía del Suroeste', 'A-6': 'Autovía del Noroeste', 'A-7': 'Autovía del Mediterráneo', 'AP-7': 'Autopista del Mediterráneo', 'A-8': 'Autovía del Cantábrico', 'A-31': 'Autovía de Alicante', 'A-23': 'Autovía Mudéjar', 'A-66': 'Autovía Ruta de la Plata', 'N-332': 'Carretera N-332', 'N-340': 'Carretera N-340' };
+    const reVia = /(?:^|[^A-Z0-9])(AP|A|N|E)\s?-\s?(\d{1,3})(?![0-9])/;
+    const pareceVia = /AUTOV|AUTOP|CARRET|CTRA|\bKM\b|KM\.?\s?\d|P\.?K\.?\s?\d|\bPK\b/;
+    const vias = new Map();
+    for (const e of datos.estaciones) {
+      const d = String(e[C.dir] || '').toUpperCase();
+      if (!pareceVia.test(d)) continue;
+      const m = d.match(reVia);
+      if (!m) continue;
+      const cod = `${m[1]}-${+m[2]}`;
+      const km = parseFloat(((d.match(/(?:KM|K\.M\.|P\.?K\.?)\s*\.?\s*(\d+(?:[.,]\d+)?)/) || [])[1] || '').replace(',', '.'));
+      if (!vias.has(cod)) vias.set(cod, []);
+      vias.get(cod).push({ e, km: isFinite(km) ? km : null });
+    }
+    const listaVias = [...vias.entries()].filter(([, l]) => l.length >= 5).sort((a, b) => b[1].length - a[1].length);
+    for (const [cod, l] of listaVias) {
+      const est = l.map((x) => x.e);
+      const ruta = `/carreteras/${slug(cod)}/`;
+      const nombre = NOMBRES[cod] ? `${cod} (${NOMBRES[cod]})` : cod;
+      const provs = [...new Set(est.map((e) => datos.provMap.get(e[C.prov])?.nombre).filter(Boolean))];
+      const conKm = l.filter((x) => x.km != null).sort((a, b) => a.km - b.km);
+      const extra = conKm.length >= 3 ? `<section class="bloque"><h2>Gasolineras de la ${esc(cod)} por punto kilométrico</h2><div class="tabla-scroll"><table class="tabla"><thead><tr><th scope="col" class="num">Km</th><th scope="col">Gasolinera</th><th scope="col" class="num">G95</th><th scope="col" class="num">Diésel</th></tr></thead><tbody>${conKm.map((x) => `<tr><td class="num">${x.km}</td><td><strong>${esc(x.e[C.marca])}</strong><span>${esc(x.e[C.mun])} (${esc(datos.provMap.get(x.e[C.prov])?.nombre || '')})</span></td><td class="num">${euro(precioDe(x.e, I95))}</td><td class="num">${euro(precioDe(x.e, IDIE))}</td></tr>`).join('')}</tbody></table></div><p class="nota">Ordenadas por kilómetro según la dirección comunicada al Ministerio.</p></section>` : '';
+      pagListado({
+        ruta, tipo: 'general',
+        migas: [['/carreteras/', 'Carreteras'], [ruta, cod]],
+        h1: `Gasolineras más baratas en la ${esc(nombre)}`,
+        sub: `${est.length} gasolineras en la ${esc(cod)}${provs.length ? ` a su paso por ${esc(provs.slice(0, 6).join(', '))}${provs.length > 6 ? '…' : ''}` : ''}, con precios de ${hoy}.`,
+        est, extra,
+        titulo: h.titulo(...h.conMarca(`Gasolineras baratas en la ${cod} hoy`, `Gasolineras ${cod}`)),
+        descripcion: h.descripcion(`Gasolineras más baratas en la ${nombre} hoy, ${f.corto}, por punto kilométrico.`, 'Planifica dónde repostar en tu viaje.'),
+        faqs: (r) => [r.g95 && [`¿Cuál es la gasolinera más barata de la ${cod}?`, `Hoy es ${esc(r.g95.barata[C.marca])} en ${esc(r.g95.barata[C.dir])} (${esc(r.g95.barata[C.mun])}), con la gasolina 95 a ${euro(r.g95.min)} €/l.`],
+          r.diesel && [`¿Dónde está el diésel más barato en la ${cod}?`, `En ${esc(r.diesel.barata[C.marca])} (${esc(r.diesel.barata[C.mun])}), a ${euro(r.diesel.min)} €/l.`]],
+        enlaces: '<p class="nota">Calcula cuánto te costará el viaje con la <a href="/calculadora-gasolina-viaje/">calculadora de gasolina</a>.</p>',
+      });
+    }
+    {
+      const mm = h.migas([['/carreteras/', 'Carreteras']]);
+      const cuerpo = `${mm.html}
+<header class="cabecera"><h1>Gasolineras baratas en autovías y carreteras</h1><p class="sub">Elige la carretera de tu viaje y mira dónde repostar más barato, ${hoy}.</p></header>
+${h.hueco('superior')}
+<section class="bloque"><div class="enlaces">${listaVias.map(([cod, l]) => `<a href="/carreteras/${slug(cod)}/">${esc(cod)}${NOMBRES[cod] ? ` · ${esc(NOMBRES[cod])}` : ''} <small>${l.length}</small></a>`).join('')}</div></section>`;
+      add('/carreteras/', h.pagina({ ruta: '/carreteras/', titulo: h.titulo(...h.conMarca('Gasolineras baratas en autovías y carreteras de España', 'Gasolineras en carreteras')), descripcion: h.descripcion(`Gasolineras más baratas en la A-3, A-7, AP-7, A-4 y el resto de autovías y carreteras de España hoy, ${f.corto}.`), cuerpo, schemas: [mm.schema] }), 'general');
     }
   }
 
