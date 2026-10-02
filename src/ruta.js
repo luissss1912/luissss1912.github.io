@@ -145,6 +145,7 @@ async function gasolinerasEnRuta(muestras, desvio, i) {
 }
 
 // ---------- Pintar ----------
+let desvioMax = 3;
 const rutaMaps = (lat, lon) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
 function tarjeta(x, etiqueta) {
   const e = x.e;
@@ -152,7 +153,7 @@ function tarjeta(x, etiqueta) {
     <div class="pos">${etiqueta}</div>
     <div style="min-width:0"><div class="nom">${esc(e[C.marca])}</div>
     <div class="dir">${esc(e[C.dir])}, ${esc(e[C.mun])}</div>
-    <div class="meta"><span>Km ${Math.round(x.km)} de la ruta</span><span>${x.desvio < 0.3 ? 'en la ruta' : 'desvío ' + km(x.desvio)}</span>${es24h(e[C.horario]) ? '<span class="pill abierta">24 h</span>' : ''}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar ↗</a></div></div>
+    <div class="meta"><span>Km ${Math.round(x.km)} de la ruta</span><span>${x.desvio < Math.min(0.3, desvioMax / 2) ? 'en la ruta' : 'desvío ' + km(x.desvio)}</span>${es24h(e[C.horario]) ? '<span class="pill abierta">24 h</span>' : ''}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar ↗</a></div></div>
     <div class="pr"><b>${euro(x.precio)}</b><span class="delta">€/l</span></div>
   </li>`;
 }
@@ -189,14 +190,15 @@ async function buscar() {
     const ci = Math.max(0, COMBUSTIBLES.findIndex((c) => c.k === $('rComb').value));
     const c = COMBUSTIBLES[ci];
     const desvio = +$('rDesvio').value;
+    desvioMax = desvio;
     const tramo = +$('rTramo').value;
     window.gtag?.('event', 'buscar_ruta', { combustible: c.corto, desvio_km: desvio });
     const ruta = await calcularRuta(a, b);
     const total = ruta.metros / 1000;
     out.innerHTML = '<div class="vacio"><strong>Buscando gasolineras en el camino…</strong></div>';
-    const muestras = muestrear(ruta.coords, 1);
+    const muestras = muestrear(ruta.coords, desvio < 1 ? 0.04 : 1);
     const todas = await gasolinerasEnRuta(muestras, desvio, ci);
-    if (!todas.length) { out.innerHTML = `<div class="vacio"><strong>No hay gasolineras con ${esc(c.nombre)} a menos de ${desvio} km de la ruta</strong><span>Prueba con un desvío mayor.</span></div>`; return; }
+    if (!todas.length) { out.innerHTML = `<div class="vacio"><strong>No hay gasolineras con ${esc(c.nombre)} a menos de ${km(desvio)} de la ruta</strong><span>Prueba con un desvío mayor.</span></div>`; return; }
     const media = todas.reduce((s, x) => s + x.precio, 0) / todas.length;
     const ordenadas = [...todas].sort((x, y) => x.precio - y.precio);
     const mejor = ordenadas[0];
@@ -217,18 +219,18 @@ async function buscar() {
         <span class="t-f">${esc(c.nombre)} · la más barata de la ruta</span>
         <div class="t-p">${euro(mejor.precio)}<small>€/l</small></div>
         <div class="t-quien">${esc(mejor.e[C.marca])}</div>
-        <div class="t-donde">${esc(mejor.e[C.dir])}, ${esc(mejor.e[C.mun])} · km ${Math.round(mejor.km)}${mejor.desvio >= 0.3 ? ` · desvío ${km(mejor.desvio)}` : ''}</div>
+        <div class="t-donde">${esc(mejor.e[C.dir])}, ${esc(mejor.e[C.mun])} · km ${Math.round(mejor.km)}${mejor.desvio >= Math.min(0.3, desvio / 2) ? ` · desvío ${km(mejor.desvio)}` : ''}</div>
         <div class="t-acc"><a href="${rutaMaps(mejor.e[C.lat], mejor.e[C.lon])}" target="_blank" rel="noopener">Cómo llegar</a><a class="wa" href="https://wa.me/?text=${encodeURIComponent(textoWa + ' ' + url)}" target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','compartir',{metodo:'whatsapp_ruta'})">WhatsApp</a></div>
       </div>
       <div class="stats">
         <div class="stat ahorro"><b>${euro((media - mejor.precio) * DEPOSITO, 2)} €</b><span>Ahorras en un depósito de ${DEPOSITO} l vs. la media de la ruta</span></div>
         <div class="stat"><b>${Math.round(total)} km</b><span>${horas} h ${min} min aprox.</span></div>
         <div class="stat"><b>${euro(media)}</b><span>Precio medio en la ruta</span></div>
-        <div class="stat n"><b>${todas.length}</b><span>Gasolineras a menos de ${desvio} km</span></div>
+        <div class="stat n"><b>${todas.length}</b><span>Gasolineras a menos de ${km(desvio)}</span></div>
       </div>
     </div>
     <h2 class="h-lista">La más barata cada ${tramo} km</h2>
-    <ol class="lista">${tramos.map((t) => t.mejor ? tarjeta(t.mejor, `${Math.round(t.ini)}–${Math.round(t.fin)}`) : `<li class="est vacio-tramo"><div class="pos">${Math.round(t.ini)}–${Math.round(t.fin)}</div><div>Sin gasolineras con ${esc(c.nombre)} a menos de ${desvio} km</div></li>`).join('')}</ol>
+    <ol class="lista">${tramos.map((t) => t.mejor ? tarjeta(t.mejor, `${Math.round(t.ini)}–${Math.round(t.fin)}`) : `<li class="est vacio-tramo"><div class="pos">${Math.round(t.ini)}–${Math.round(t.fin)}</div><div>Sin gasolineras con ${esc(c.nombre)} a menos de ${km(desvio)}</div></li>`).join('')}</ol>
     <h2 class="h-lista">Las 10 más baratas de toda la ruta</h2>
     <ol class="lista">${ordenadas.slice(0, 10).map((x, k) => tarjeta(x, k + 1)).join('')}</ol>
     <p class="nota">Precios oficiales del Ministerio, ${esc(SITIO.fecha?.texto || '')}. Ruta calculada con OpenStreetMap (OSRM); la ruta real puede variar. La más cara del recorrido está a ${euro(max)} €/l.</p>`;

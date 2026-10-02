@@ -664,7 +664,7 @@ ${h.hueco('superior')}
   <div class="inputwrap"><label for="rDestino">Destino</label><input id="rDestino" type="text" placeholder="Ej.: Santiago de Compostela" required></div>
   <div class="ruta-opc">
     <label>Combustible<select id="rComb"></select></label>
-    <label>Desvío máximo<select id="rDesvio"><option value="1">1 km</option><option value="3" selected>3 km</option><option value="5">5 km</option><option value="10">10 km</option></select></label>
+    <label>Desvío máximo<select id="rDesvio"><option value="0.1">100 m</option><option value="0.2">200 m</option><option value="1">1 km</option><option value="3" selected>3 km</option><option value="5">5 km</option><option value="10">10 km</option></select></label>
     <label>Tramos de<select id="rTramo"><option value="50">50 km</option><option value="100" selected>100 km</option><option value="150">150 km</option><option value="200">200 km</option></select></label>
   </div>
   <button type="submit" class="btn">Buscar gasolineras en la ruta</button>
