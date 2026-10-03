@@ -147,13 +147,13 @@ async function gasolinerasEnRuta(muestras, desvio, i) {
 // ---------- Pintar ----------
 let desvioMax = 3;
 const rutaMaps = (lat, lon) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
-function tarjeta(x, etiqueta) {
+function tarjeta(x, etiqueta, extra = '') {
   const e = x.e;
   return `<li class="est">
     <div class="pos">${etiqueta}</div>
     <div style="min-width:0"><div class="nom">${esc(e[C.marca])}</div>
     <div class="dir">${esc(e[C.dir])}, ${esc(e[C.mun])}</div>
-    <div class="meta"><span>Km ${Math.round(x.km)} de la ruta</span><span>${x.desvio < Math.min(0.3, desvioMax / 2) ? 'en la ruta' : 'desvío ' + km(x.desvio)}</span>${es24h(e[C.horario]) ? '<span class="pill abierta">24 h</span>' : ''}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar ↗</a></div></div>
+    <div class="meta"><span>Km ${Math.round(x.km)} de la ruta</span>${extra ? `<span>${extra}</span>` : ''}<span>${x.desvio < Math.min(0.3, desvioMax / 2) ? 'en la ruta' : 'desvío ' + km(x.desvio)}</span>${es24h(e[C.horario]) ? '<span class="pill abierta">24 h</span>' : ''}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar ↗</a></div></div>
     <div class="pr"><b>${euro(x.precio)}</b><span class="delta">€/l</span></div>
   </li>`;
 }
@@ -203,12 +203,19 @@ async function buscar() {
     const ordenadas = [...todas].sort((x, y) => x.precio - y.precio);
     const mejor = ordenadas[0];
     const max = ordenadas[ordenadas.length - 1].precio;
+    // Paradas: nunca más de `tramo` km entre una y la siguiente (ni desde la salida ni hasta el destino)
     const tramos = [];
-    for (let ini = 0; ini < total; ini += tramo) {
-      const fin = Math.min(total, ini + tramo);
-      const t = todas.filter((x) => x.km >= ini && x.km < fin).sort((x, y) => x.precio - y.precio);
-      tramos.push({ ini, fin, mejor: t[0], n: t.length });
+    let ult = 0;
+    while (total - ult > tramo) {
+      const ventana = todas.filter((x) => x.km > ult + 0.5 && x.km <= ult + tramo);
+      if (!ventana.length) { tramos.push({ ini: ult, fin: ult + tramo }); ult += tramo; continue; }
+      // Preferimos la más barata de la segunda mitad del tramo para no hacer paradas de más
+      const lejos = ventana.filter((x) => x.km >= ult + tramo / 2);
+      const p = (lejos.length ? lejos : ventana).reduce((m, x) => (x.precio < m.precio ? x : m));
+      tramos.push({ ini: ult, fin: p.km, mejor: p });
+      ult = p.km;
     }
+    const finalTramo = total - ult;
     const horas = Math.floor(ruta.segundos / 3600), min = Math.round((ruta.segundos % 3600) / 60);
     const destacadas = [...new Set([mejor, ...tramos.map((t) => t.mejor).filter(Boolean)])];
     const url = `${location.origin}/ruta/?o=${encodeURIComponent($('rOrigen').value)}&d=${encodeURIComponent($('rDestino').value)}&c=${c.k}`;
@@ -229,8 +236,9 @@ async function buscar() {
         <div class="stat n"><b>${todas.length}</b><span>Gasolineras a menos de ${km(desvio)}</span></div>
       </div>
     </div>
-    <h2 class="h-lista">La más barata cada ${tramo} km</h2>
-    <ol class="lista">${tramos.map((t) => t.mejor ? tarjeta(t.mejor, `${Math.round(t.ini)}–${Math.round(t.fin)}`) : `<li class="est vacio-tramo"><div class="pos">${Math.round(t.ini)}–${Math.round(t.fin)}</div><div>Sin gasolineras con ${esc(c.nombre)} a menos de ${km(desvio)}</div></li>`).join('')}</ol>
+    <h2 class="h-lista">Dónde repostar: paradas cada ${tramo} km como máximo</h2>
+    <ol class="lista">${tramos.map((t, k) => t.mejor ? tarjeta(t.mejor, `${k + 1}ª`, `${Math.round(t.fin - t.ini)} km desde ${k ? 'la parada anterior' : 'la salida'}`) : `<li class="est vacio-tramo"><div class="pos">!</div><div>Sin gasolineras con ${esc(c.nombre)} a menos de ${km(desvio)} entre el km ${Math.round(t.ini)} y el ${Math.round(t.fin)}. Prueba con un desvío mayor.</div></li>`).join('')}
+    <li class="est vacio-tramo"><div class="pos">🏁</div><div>${tramos.length ? `Desde la última parada quedan ${Math.round(finalTramo)} km hasta ${esc(b.n)}.` : `El viaje (${Math.round(total)} km) no necesita paradas con tramos de ${tramo} km. Arriba tienes la más barata de toda la ruta.`}</div></li></ol>
     <h2 class="h-lista">Las 10 más baratas de toda la ruta</h2>
     <ol class="lista">${ordenadas.slice(0, 10).map((x, k) => tarjeta(x, k + 1)).join('')}</ol>
     <p class="nota">Precios oficiales del Ministerio, ${esc(SITIO.fecha?.texto || '')}. Ruta calculada con OpenStreetMap (OSRM); la ruta real puede variar. La más cara del recorrido está a ${euro(max)} €/l.</p>`;

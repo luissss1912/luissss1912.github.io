@@ -652,7 +652,7 @@ ${h.hueco('superior')}
     const m = h.migas([['/ruta/', 'Gasolineras en tu ruta']]);
     const ejemplos = [['Valencia', 'Santiago de Compostela'], ['Madrid', 'Valencia'], ['Madrid', 'Málaga'], ['Barcelona', 'Madrid'], ['Sevilla', 'Madrid'], ['Bilbao', 'Madrid'], ['Valencia', 'Barcelona'], ['Alicante', 'Madrid']];
     const pregs = h.faq([
-      ['¿Cómo encuentro la gasolinera más barata en mi viaje?', 'Escribe el origen y el destino, elige tu combustible y cuánto estás dispuesto a desviarte. Calculamos la ruta en coche y te mostramos la gasolinera más barata de todo el recorrido y la más barata de cada tramo, con el kilómetro en el que está.'],
+      ['¿Cómo encuentro la gasolinera más barata en mi viaje?', 'Escribe el origen y el destino, elige tu combustible y cuánto estás dispuesto a desviarte. Calculamos la ruta en coche y te mostramos la gasolinera más barata de todo el recorrido y dónde parar a repostar sin superar nunca los kilómetros que elijas entre una parada y la siguiente.'],
       ['¿Compensa desviarse para repostar más barato?', `Con un desvío de 2–3 km y una diferencia de 10 céntimos por litro, en un depósito de 50 litros ahorras unos 5 € y gastas menos de 0,50 € en el desvío. Usa la <a href="/calculadora-gasolina-viaje/">calculadora</a> para tu caso.`],
       ['¿Dónde es más barato repostar en un viaje largo por España?', 'Suele ser más barato repostar en gasolineras low cost o de supermercado cerca de las salidas de la autovía que en las áreas de servicio. Las de autopista de peaje suelen ser las más caras.'],
     ]);
@@ -665,7 +665,7 @@ ${h.hueco('superior')}
   <div class="ruta-opc">
     <label>Combustible<select id="rComb"></select></label>
     <label>Desvío máximo<select id="rDesvio"><option value="0.1">100 m</option><option value="0.2">200 m</option><option value="1">1 km</option><option value="3" selected>3 km</option><option value="5">5 km</option><option value="10">10 km</option></select></label>
-    <label>Tramos de<select id="rTramo"><option value="50">50 km</option><option value="100" selected>100 km</option><option value="150">150 km</option><option value="200">200 km</option></select></label>
+    <label>Parar cada (máx.)<select id="rTramo"><option value="50">50 km</option><option value="100" selected>100 km</option><option value="150">150 km</option><option value="200">200 km</option></select></label>
   </div>
   <button type="submit" class="btn">Buscar gasolineras en la ruta</button>
 </form>
