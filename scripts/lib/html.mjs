@@ -182,6 +182,7 @@ ${ld}
 <main id="contenido" class="wrap">
 ${cuerpo}
 </main>
+${noindex || en ? '' : `<aside class="wrap ig-cta"><a href="https://www.instagram.com/surtidorbarato/" target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','instagram',{origen:'pie'})"><span class="ig-ico"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor"/></svg></span><span class="ig-txt"><strong>Las gasolineras más baratas de tu provincia, cada mañana</strong><span>Síguenos en Instagram: @surtidorbarato</span></span><span class="ig-btn">Seguir</span></a></aside>`}
 ${noindex ? '' : `<aside class="wrap compartir-pag"><a class="wa" href="https://wa.me/?text=${encodeURIComponent(titulo + ' ' + abs(ruta))}" target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','compartir',{metodo:'whatsapp_pagina'})">${T.whatsapp}</a><a class="tg" href="https://t.me/share/url?url=${encodeURIComponent(abs(ruta))}&amp;text=${encodeURIComponent(titulo)}" target="_blank" rel="noopener" onclick="window.gtag&&gtag('event','compartir',{metodo:'telegram_pagina'})">Telegram</a></aside>`}
 <footer class="pie">
   <div class="wrap">
