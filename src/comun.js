@@ -1,12 +1,17 @@
 // Utilidades compartidas entre el generador (Node) y el buscador (navegador).
 
 export const COMBUSTIBLES = [
-  { k: 'g95', nombre: 'Gasolina 95', corto: 'Gasolina 95', campo: 'Precio Gasolina 95 E5' },
-  { k: 'diesel', nombre: 'Diésel', corto: 'Diésel', campo: 'Precio Gasoleo A' },
-  { k: 'g98', nombre: 'Gasolina 98', corto: 'Gasolina 98', campo: 'Precio Gasolina 98 E5' },
-  { k: 'dieselplus', nombre: 'Diésel Premium', corto: 'Diésel+', campo: 'Precio Gasoleo Premium' },
-  { k: 'glp', nombre: 'Autogás (GLP)', corto: 'GLP', campo: 'Precio Gases licuados del petróleo' },
+  { k: 'g95', nombre: 'Gasolina 95', corto: 'Gasolina 95', en: 'Unleaded 95', cortoEn: 'Unleaded 95', campo: 'Precio Gasolina 95 E5' },
+  { k: 'diesel', nombre: 'Diésel', corto: 'Diésel', en: 'Diesel', cortoEn: 'Diesel', campo: 'Precio Gasoleo A' },
+  { k: 'g98', nombre: 'Gasolina 98', corto: 'Gasolina 98', en: 'Super unleaded 98', cortoEn: 'Unleaded 98', campo: 'Precio Gasolina 98 E5' },
+  { k: 'dieselplus', nombre: 'Diésel Premium', corto: 'Diésel+', en: 'Premium diesel', cortoEn: 'Diesel+', campo: 'Precio Gasoleo Premium' },
+  { k: 'glp', nombre: 'Autogás (GLP)', corto: 'GLP', en: 'Autogas (LPG)', cortoEn: 'LPG', campo: 'Precio Gases licuados del petróleo' },
 ];
+
+// Idioma de la página: 'es' o 'en'. En el navegador lo dice window.SITIO.lang; en el generador se pasa a mano.
+export const idioma = (lang) => lang || globalThis.SITIO?.lang || 'es';
+export const nombreComb = (c, lang) => (idioma(lang) === 'en' ? c.en : c.nombre);
+export const cortoComb = (c, lang) => (idioma(lang) === 'en' ? c.cortoEn : c.corto);
 
 // Posiciones en el array compacto de cada gasolinera
 export const C = { id: 0, marca: 1, dir: 2, mun: 3, munId: 4, prov: 5, cp: 6, lat: 7, lon: 8, horario: 9, precios: 10 };
@@ -50,8 +55,9 @@ export function nombreMarca(r) {
   return titulo(t);
 }
 
-export const euro = (v, d = 3) => (v == null || !Number.isFinite(v) ? '—' : v.toFixed(d).replace('.', ','));
-export const km = (d) => (d < 1 ? Math.round(d * 1000) + ' m' : d.toFixed(1).replace('.', ',') + ' km');
+// En inglés los decimales van con punto (1.509), en español con coma (1,509)
+export const euro = (v, d = 3, lang) => (v == null || !Number.isFinite(v) ? '—' : idioma(lang) === 'en' ? v.toFixed(d) : v.toFixed(d).replace('.', ','));
+export const km = (d, lang) => (d < 1 ? Math.round(d * 1000) + ' m' : (idioma(lang) === 'en' ? d.toFixed(1) : d.toFixed(1).replace('.', ',')) + ' km');
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export function distancia(a, b, c, d) {
@@ -100,8 +106,12 @@ export function abiertaAhora(horario, fecha = new Date()) {
   return entendido ? false : null;
 }
 
-export function horarioCorto(h) {
+const DIAS_EN = { L: 'Mon', M: 'Tue', X: 'Wed', J: 'Thu', V: 'Fri', S: 'Sat', D: 'Sun' };
+export function horarioCorto(h, lang) {
   if (!h) return '';
-  if (es24h(h)) return '24 horas';
-  return h.replace(/\s+/g, ' ').replace(/;\s*/g, ' · ');
+  const en = idioma(lang) === 'en';
+  if (es24h(h)) return en ? '24 hours' : '24 horas';
+  const t = h.replace(/\s+/g, ' ').replace(/;\s*/g, ' · ');
+  // "L-V: 06:00-22:00 · S: 07:00-15:00" -> "Mon-Fri: 06:00-22:00 · Sat: 07:00-15:00"
+  return en ? t.replace(/(^|·\s*)([LMXJVSD,\s-]+):/g, (m, a, d) => a + d.replace(/[LMXJVSD]/g, (x) => DIAS_EN[x]) + ':').replace(/24H/g, '24h') : t;
 }

@@ -81,3 +81,17 @@ A partir de ahí GitHub descarga los precios y regenera la web **cada 2 horas**,
 | `static/og.png` | La imagen que sale al compartir la web. Lleva el nombre «Surtidor Barato»: si cambias el nombre, pídeme que la regenere. |
 
 **Servicios gratuitos que usa:** Photon (Komoot) para buscar direcciones y OpenStreetMap para el mapa. Con uso normal no hay problema. Si la web llega a tener muchísimo tráfico, cámbialos por un proveedor de pago en `servicios`.
+
+---
+
+## Versión en inglés
+
+La web tiene una copia completa en inglés en **`/en/`** (por ejemplo `/en/petrol-stations/valencia/l-eliana/`). Se genera sola junto con la española, con los mismos precios.
+
+- Cada página enlaza con su versión en el otro idioma (botón **English / Español** arriba a la derecha) y lleva las etiquetas `hreflang` para que Google muestre a cada persona su idioma.
+- Las páginas en inglés tienen sus propios sitemaps (`sitemap-en-…xml`), ya incluidos en `sitemap.xml`.
+- Las **noticias** solo están en español.
+- Los **cuadros de afiliado** no salen en inglés hasta que les pongas textos en inglés. En `sitio.config.json`, dentro de cada afiliado, añade por ejemplo:
+  `"en": { "etiqueta": "Save on insurance too", "titulo": "How much do you pay for car insurance?", "texto": "…", "boton": "Compare insurance", "url": "" }`
+  (si `url` va vacío, usa el de la versión española).
+- Código: los textos de las páginas en inglés están en `scripts/lib/paginas-en.mjs`. Si cambias una página en `paginas.mjs`, cambia también su gemela en inglés.

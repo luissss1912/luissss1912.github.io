@@ -9,6 +9,7 @@ import * as esbuild from 'esbuild';
 import { descargarMinisterio, procesar, actualizarHistorico, nuevoRegistroRutas, unirRegistrosRutas, actualizarRegistroRutas } from './lib/datos.mjs';
 import { crearHtml } from './lib/html.mjs';
 import { crearPaginas } from './lib/paginas.mjs';
+import { crearPaginasEn } from './lib/paginas-en.mjs';
 import { actualizarNoticias, paginasNoticias } from './lib/noticias.mjs';
 import { C } from '../src/comun.js';
 
@@ -143,13 +144,16 @@ log('Datos del buscador listos');
 // ---------- 6. Páginas ----------
 const h = crearHtml(cfg, { assets, datos });
 const notis = paginasNoticias(cfg, noticias, historico, h);
-const paginas = [...crearPaginas(cfg, { datos, historico, ultimasNoticias: notis.ultimas }, h), ...notis.paginas];
+// Versión en inglés (/en/): mismas páginas que en español salvo las noticias
+const hEn = crearHtml(cfg, { assets, datos }, 'en');
+const paginasEn = crearPaginasEn(cfg, { datos, historico }, hEn);
+const paginas = [...crearPaginas(cfg, { datos, historico, ultimasNoticias: notis.ultimas }, h), ...notis.paginas, ...paginasEn];
 escribir(join(DIST, 'noticias', 'rss.xml'), notis.rss);
 for (const pg of paginas) {
   const destino = pg.archivo ? join(DIST, pg.archivo) : join(DIST, pg.ruta, 'index.html');
   escribir(destino, pg.html);
 }
-log(`${paginas.length} páginas generadas`);
+log(`${paginas.length} páginas generadas (${paginasEn.length} en inglés)`);
 
 // ---------- 7. Archivos estáticos ----------
 const copiarDir = (de, a) => {
@@ -175,9 +179,9 @@ const base = cfg.url.replace(/\/$/, '');
 // Un sitemap por tipo de página, para ver en Search Console qué se indexa de cada grupo.
 // Las páginas con precios cambian cada día; las legales no llevan fecha (no cambian).
 const indexables = paginas.filter((p) => !p.sinMapa);
-const grupos = ['general', 'noticias', 'provincias', 'municipios', 'marcas', 'legal'];
+const grupos = ['general', 'noticias', 'provincias', 'municipios', 'marcas', 'legal', 'en-general', 'en-provincias', 'en-municipios', 'en-marcas', 'en-legal'];
 const xml = (s) => s.replace(/&/g, '&amp;');
-const lastmod = (g) => (g === 'legal' ? '' : `<lastmod>${datos.fecha.iso}</lastmod>`);
+const lastmod = (g) => (g.endsWith('legal') ? '' : `<lastmod>${datos.fecha.iso}</lastmod>`);
 const delGrupo = (g) => indexables.filter((p) => (p.tipo || 'general') === g);
 for (const g of grupos) {
   const urls = delGrupo(g).map((p) => `<url><loc>${xml(base + p.ruta)}</loc>${lastmod(g)}</url>`);

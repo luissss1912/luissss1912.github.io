@@ -1,5 +1,6 @@
 // Rellena los huecos de publicidad (AdSense) y gestiona el botón de cookies.
 const cfg = window.SITIO?.anuncios || {};
+const EN = window.SITIO?.lang === 'en';
 
 function rellenar(raiz = document) {
   raiz.querySelectorAll('[data-hueco]:not([data-listo])').forEach((el) => {
@@ -8,7 +9,7 @@ function rellenar(raiz = document) {
     const bloque = cfg.bloques?.[nombre];
     if (cfg.modoPrueba) {
       el.classList.add('prueba');
-      el.textContent = `Anuncio (${nombre})`;
+      el.textContent = `${EN ? 'Ad' : 'Anuncio'} (${nombre})`;
       return;
     }
     if (!cfg.cliente || !bloque) return; // sin bloque configurado: lo cubren los anuncios automáticos
@@ -53,8 +54,11 @@ function avisoAnalitica() {
   d.id = 'avisoCookies';
   d.className = 'aviso-cookies';
   d.setAttribute('role', 'dialog');
-  d.setAttribute('aria-label', 'Cookies de estadísticas');
-  d.innerHTML = `<p>Usamos cookies de estadísticas (Google Analytics) para saber cuánta gente usa la web y mejorarla. No se usan para publicidad. <a href="/cookies/">Más información</a></p>
+  d.setAttribute('aria-label', EN ? 'Statistics cookies' : 'Cookies de estadísticas');
+  d.innerHTML = EN
+    ? `<p>We use statistics cookies (Google Analytics) to know how many people use the site and improve it. They are not used for advertising. <a href="/en/cookies/">More information</a></p>
+  <div class="aviso-botones"><button type="button" class="btn-sec" data-v="no">Decline</button><button type="button" class="btn-pri" data-v="si">Accept</button></div>`
+    : `<p>Usamos cookies de estadísticas (Google Analytics) para saber cuánta gente usa la web y mejorarla. No se usan para publicidad. <a href="/cookies/">Más información</a></p>
   <div class="aviso-botones"><button type="button" class="btn-sec" data-v="no">Rechazar</button><button type="button" class="btn-pri" data-v="si">Aceptar</button></div>`;
   d.addEventListener('click', (e) => {
     const v = e.target.closest('button')?.dataset.v;

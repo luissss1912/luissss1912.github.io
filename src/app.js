@@ -1,7 +1,12 @@
 // Buscador de gasolineras: ubicación, direcciones, filtros, lista, mapa, favoritas y compartir.
-import { COMBUSTIBLES, C, precioDe, esc, euro, km, distancia, abiertaAhora, es24h, horarioCorto } from './comun.js';
+import { COMBUSTIBLES, C, precioDe, esc, euro, km, distancia, abiertaAhora, es24h, horarioCorto, nombreComb, cortoComb } from './comun.js';
 
 const SITIO = window.SITIO;
+// Idioma de la página: los textos van en pares t('español', 'English')
+const EN = SITIO.lang === 'en';
+const t = (es, en) => (EN ? en : es);
+const INICIO = EN ? '/en/' : '/';
+const marcaDe = (e) => (EN && e[C.marca] === 'Gasolinera independiente' ? 'Independent station' : e[C.marca]);
 const $ = (id) => document.getElementById(id);
 const PAG = 20;
 const AD_CADA = 7;
@@ -54,10 +59,10 @@ async function estacionesZona(lat, lon, radio) {
 // ---------- Utilidades de interfaz ----------
 function mensaje(t) { $('msg').textContent = t || ''; $('msg').hidden = !t; }
 const combIdx = () => COMBUSTIBLES.findIndex((c) => c.k === S.comb);
-const comb = () => COMBUSTIBLES[combIdx()];
+const comb = () => { const c = COMBUSTIBLES[combIdx()]; return { ...c, nombre: nombreComb(c), corto: cortoComb(c) }; };
 function textoLugar(l) {
   if (!l) return '';
-  if (l.gps) return l.n ? `${l.n} (tu ubicación)` : 'Tu ubicación';
+  if (l.gps) return l.n ? `${l.n} (${t('tu ubicación', 'your location')})` : t('Tu ubicación', 'Your location');
   return l.sub ? `${l.n}, ${l.sub}` : l.n;
 }
 function pintarControles() {
@@ -74,8 +79,8 @@ function pintarControles() {
 function estadoHorario(h) {
   if (es24h(h)) return '<span class="pill abierta">24 h</span>';
   const a = abiertaAhora(h);
-  if (a === true) return `<span class="abierta">Abierta</span> <span>${esc(horarioCorto(h))}</span>`;
-  if (a === false) return `<span class="cerrada">Cerrada ahora</span> <span>${esc(horarioCorto(h))}</span>`;
+  if (a === true) return `<span class="abierta">${t('Abierta', 'Open')}</span> <span>${esc(horarioCorto(h))}</span>`;
+  if (a === false) return `<span class="cerrada">${t('Cerrada ahora', 'Closed now')}</span> <span>${esc(horarioCorto(h))}</span>`;
   return `<span>${esc(horarioCorto(h))}</span>`;
 }
 
@@ -86,12 +91,12 @@ async function buscar() {
   const gen = ++generacion;
   const i = combIdx();
   window.gtag?.('event', 'buscar_gasolineras', { combustible: COMBUSTIBLES[i]?.corto, radio_km: S.radio });
-  $('resultado').innerHTML = '<div class="vacio"><strong>Buscando gasolineras…</strong></div>';
+  $('resultado').innerHTML = `<div class="vacio"><strong>${t('Buscando gasolineras…', 'Searching for petrol stations…')}</strong></div>`;
   let todas;
   try {
     todas = await estacionesZona(S.lugar.lat, S.lugar.lon, S.radio);
   } catch {
-    $('resultado').innerHTML = '<div class="vacio"><strong>No hemos podido cargar los precios</strong><span>Comprueba tu conexión e inténtalo de nuevo.</span></div>';
+    $('resultado').innerHTML = `<div class="vacio"><strong>${t('No hemos podido cargar los precios', 'We could not load the prices')}</strong><span>${t('Comprueba tu conexión e inténtalo de nuevo.', 'Check your connection and try again.')}</span></div>`;
     return;
   }
   if (gen !== generacion) return;
@@ -115,10 +120,12 @@ function pintar() {
   const r = ultimo;
   $('listaBloque').hidden = !S.lugar;
   if (!S.lugar) return;
-  const filtros = [S.abiertas && 'abiertas ahora', S.h24 && 'abiertas 24 horas'].filter(Boolean).join(' y ');
+  const filtros = [S.abiertas && t('abiertas ahora', 'open now'), S.h24 && t('abiertas 24 horas', 'open 24 hours')].filter(Boolean).join(t(' y ', ' and '));
   if (!r.length) {
-    $('resultado').innerHTML = `<div class="vacio"><strong>No hay gasolineras con ${c.nombre}${filtros ? ' ' + filtros : ''} a menos de ${radioTxt()}</strong><span>Amplía el radio${filtros ? ' o quita los filtros' : ''}.</span></div>`;
-    $('listaTitulo').textContent = 'Sin resultados';
+    $('resultado').innerHTML = EN
+      ? `<div class="vacio"><strong>No petrol stations ${filtros ? filtros + ' ' : ''}selling ${c.nombre} within ${radioTxt()}</strong><span>Increase the radius${filtros ? ' or remove the filters' : ''}.</span></div>`
+      : `<div class="vacio"><strong>No hay gasolineras con ${c.nombre}${filtros ? ' ' + filtros : ''} a menos de ${radioTxt()}</strong><span>Amplía el radio${filtros ? ' o quita los filtros' : ''}.</span></div>`;
+    $('listaTitulo').textContent = t('Sin resultados', 'No results');
     $('lista').innerHTML = '';
     $('mas').hidden = true;
     $('mapa').hidden = true;
@@ -133,26 +140,28 @@ function pintar() {
   $('resultado').innerHTML = `
   <div class="totem">
     <div>
-      <span class="t-f">${c.nombre} · la más barata a ${radioTxt()}</span>
+      <span class="t-f">${c.nombre} · ${t('la más barata a', 'cheapest within')} ${radioTxt()}</span>
       <b class="t-p">${euro(mejor.precio)}<small>€/l</small></b>
-      <div class="t-quien">${esc(e[C.marca])}</div>
-      <div class="t-donde">${esc(e[C.dir])}, ${esc(e[C.mun])} · a ${km(mejor.d)}</div>
+      <div class="t-quien">${esc(marcaDe(e))}</div>
+      <div class="t-donde">${esc(e[C.dir])}, ${esc(e[C.mun])} · ${EN ? `${km(mejor.d)} away` : `a ${km(mejor.d)}`}</div>
       <div class="t-acc">
-        <a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar</a>
+        <a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">${t('Cómo llegar', 'Directions')}</a>
         <a class="wa" id="enviarWa" href="${enlaceWa(mejor, c)}" target="_blank" rel="noopener">WhatsApp</a>
-        <button type="button" class="sec" id="compartir">Compartir</button>
+        <button type="button" class="sec" id="compartir">${t('Compartir', 'Share')}</button>
       </div>
     </div>
     <div class="stats">
-      <div class="stat ahorro"><b>${euro(ahorro, 2)} €</b><span>Ahorras por depósito de ${DEPOSITO} l vs. la media</span></div>
-      <div class="stat"><b>${euro(media)}</b><span>Precio medio en la zona</span></div>
-      <div class="stat"><b>${euro(max)}</b><span>La más cara</span></div>
-      <div class="stat n"><b>${r.length}</b><span>Gasolineras comparadas</span></div>
+      <div class="stat ahorro"><b>${EN ? `€${euro(ahorro, 2)}` : `${euro(ahorro, 2)} €`}</b><span>${t(`Ahorras por depósito de ${DEPOSITO} l vs. la media`, `You save on a ${DEPOSITO} l tank vs. the average`)}</span></div>
+      <div class="stat"><b>${euro(media)}</b><span>${t('Precio medio en la zona', 'Average price in the area')}</span></div>
+      <div class="stat"><b>${euro(max)}</b><span>${t('La más cara', 'Most expensive')}</span></div>
+      <div class="stat n"><b>${r.length}</b><span>${t('Gasolineras comparadas', 'Stations compared')}</span></div>
     </div>
   </div>`;
   $('compartir').onclick = () => { window.gtag?.('event', 'compartir', { metodo: 'sistema' }); compartir(mejor, c); };
   $('enviarWa').onclick = () => window.gtag?.('event', 'compartir', { metodo: 'whatsapp' });
-  $('listaTitulo').textContent = `${r.length} ${r.length === 1 ? 'gasolinera' : 'gasolineras'} a menos de ${radioTxt()}${filtros ? ' ' + filtros : ''}`;
+  $('listaTitulo').textContent = EN
+    ? `${r.length} petrol ${r.length === 1 ? 'station' : 'stations'} within ${radioTxt()}${filtros ? ', ' + filtros : ''}`
+    : `${r.length} ${r.length === 1 ? 'gasolinera' : 'gasolineras'} a menos de ${radioTxt()}${filtros ? ' ' + filtros : ''}`;
 
   $('mapa').hidden = S.vista !== 'mapa';
   $('lista').hidden = S.vista === 'mapa';
@@ -166,14 +175,14 @@ function pintar() {
   lista.slice(0, S.vistos).forEach((x, k) => {
     const e = x.e, pos = puesto.get(x), dif = x.precio - media;
     const cls = dif < -0.0005 ? 'lo' : dif > 0.0005 ? 'hi' : '';
-    const dtxt = `${dif > 0 ? '+' : dif < 0 ? '−' : '±'}${Math.abs(dif * 100).toFixed(1).replace('.', ',')} cts vs. media`;
+    const dtxt = `${dif > 0 ? '+' : dif < 0 ? '−' : '±'}${euro(Math.abs(dif * 100), 1)}${t(' cts vs. media', 'c vs. average')}`;
     const esFav = favIds.has(e[C.id]);
     html.push(`<li class="est${pos === 1 ? ' top' : ''}">
-      <div class="pos" title="Puesto por precio">${pos}</div>
+      <div class="pos" title="${t('Puesto por precio', 'Price ranking')}">${pos}</div>
       <div style="min-width:0">
-        <div class="nom">${esc(e[C.marca])} <button type="button" class="fav" data-fav="${e[C.id]}" data-prov="${e[C.prov]}" aria-pressed="${esFav}" aria-label="${esFav ? 'Quitar de' : 'Guardar en'} mis gasolineras">${icoEstrella(esFav)}</button></div>
+        <div class="nom">${esc(marcaDe(e))} <button type="button" class="fav" data-fav="${e[C.id]}" data-prov="${e[C.prov]}" aria-pressed="${esFav}" aria-label="${esFav ? t('Quitar de mis gasolineras', 'Remove from my petrol stations') : t('Guardar en mis gasolineras', 'Save to my petrol stations')}">${icoEstrella(esFav)}</button></div>
         <div class="dir">${esc(e[C.dir])}, ${esc(e[C.mun])}</div>
-        <div class="meta"><span>${km(x.d)}</span>${estadoHorario(e[C.horario])}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar ↗</a></div>
+        <div class="meta"><span>${km(x.d)}</span>${estadoHorario(e[C.horario])}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">${t('Cómo llegar', 'Directions')} ↗</a></div>
       </div>
       <div class="pr"><b>${euro(x.precio)}</b><span class="delta ${cls}">${dtxt}</span></div>
     </li>`);
@@ -192,20 +201,21 @@ async function pintarMapa(r) {
     document.head.appendChild(l);
   }
   const { pintarMapa: dibujar } = await import('./mapa.js');
-  dibujar($('mapa'), SITIO.servicios, S.lugar, S.radio, r, (x) => `<strong>${esc(x.e[C.marca])}</strong><br>${esc(x.e[C.dir])}<b class="p">${euro(x.precio)} €/l</b>${km(x.d)} · <a href="${rutaMaps(x.lat, x.lon)}" target="_blank" rel="noopener">Cómo llegar</a>`);
+  dibujar($('mapa'), SITIO.servicios, S.lugar, S.radio, r, (x) => `<strong>${esc(marcaDe(x.e))}</strong><br>${esc(x.e[C.dir])}<b class="p">${euro(x.precio)} €/l</b>${km(x.d)} · <a href="${rutaMaps(x.lat, x.lon)}" target="_blank" rel="noopener">${t('Cómo llegar', 'Directions')}</a>`);
 }
 
 function textoCompartir(x, c) {
   const e = x.e;
-  const url = `${location.origin}/?lat=${S.lugar.lat.toFixed(4)}&lon=${S.lugar.lon.toFixed(4)}&l=${encodeURIComponent(S.lugar.n || '')}`;
-  return { url, texto: `⛽ ${c.nombre} a ${euro(x.precio)} €/l en ${e[C.marca]} (${e[C.dir]}, ${e[C.mun]}). La más barata a ${radioTxt()} según ${SITIO.nombre}:` };
+  const url = `${location.origin}${INICIO}?lat=${S.lugar.lat.toFixed(4)}&lon=${S.lugar.lon.toFixed(4)}&l=${encodeURIComponent(S.lugar.n || '')}`;
+  const texto = EN
+    ? `⛽ ${c.nombre} at €${euro(x.precio)}/l at ${marcaDe(e)} (${e[C.dir]}, ${e[C.mun]}). The cheapest within ${radioTxt()} according to ${SITIO.nombre}:`
+    : `⛽ ${c.nombre} a ${euro(x.precio)} €/l en ${e[C.marca]} (${e[C.dir]}, ${e[C.mun]}). La más barata a ${radioTxt()} según ${SITIO.nombre}:`;
+  return { url, texto };
 }
 const enlaceWa = (x, c) => { const t = textoCompartir(x, c); return `https://wa.me/?text=${encodeURIComponent(t.texto + ' ' + t.url)}`; };
 
 async function compartir(x, c) {
-  const e = x.e;
-  const url = `${location.origin}/?lat=${S.lugar.lat.toFixed(4)}&lon=${S.lugar.lon.toFixed(4)}&l=${encodeURIComponent(S.lugar.n || '')}`;
-  const texto = `⛽ ${c.nombre} a ${euro(x.precio)} €/l en ${e[C.marca]} (${e[C.dir]}, ${e[C.mun]}). La más barata a ${radioTxt()} según ${SITIO.nombre}:`;
+  const { url, texto } = textoCompartir(x, c);
   if (navigator.share) {
     try { await navigator.share({ title: SITIO.nombre, text: texto, url }); return; } catch (err) { if (err?.name === 'AbortError') return; }
   }
@@ -224,7 +234,7 @@ async function pintarFavs() {
     const porId = new Map(todas.map((e) => [e[C.id], e]));
     const items = favs.map((f) => porId.get(f.id)).filter(Boolean);
     if (!items.length) { box.hidden = true; return; }
-    box.innerHTML = `<h2 style="margin-bottom:8px">Mis gasolineras</h2><ol class="lista">${items.map((e) => `<li class="est"><div class="pos">★</div><div style="min-width:0"><div class="nom">${esc(e[C.marca])} <button type="button" class="fav" data-fav="${e[C.id]}" data-prov="${e[C.prov]}" aria-pressed="true" aria-label="Quitar de mis gasolineras">★</button></div><div class="dir">${esc(e[C.dir])}, ${esc(e[C.mun])}</div><div class="meta">${estadoHorario(e[C.horario])}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">Cómo llegar ↗</a></div></div><div class="pr"><b>${euro(precioDe(e, i))}</b><span class="delta">${COMBUSTIBLES[i].corto}</span></div></li>`).join('')}</ol>`;
+    box.innerHTML = `<h2 style="margin-bottom:8px">${t('Mis gasolineras', 'My petrol stations')}</h2><ol class="lista">${items.map((e) => `<li class="est"><div class="pos">★</div><div style="min-width:0"><div class="nom">${esc(marcaDe(e))} <button type="button" class="fav" data-fav="${e[C.id]}" data-prov="${e[C.prov]}" aria-pressed="true" aria-label="${t('Quitar de mis gasolineras', 'Remove from my petrol stations')}">★</button></div><div class="dir">${esc(e[C.dir])}, ${esc(e[C.mun])}</div><div class="meta">${estadoHorario(e[C.horario])}<a href="${rutaMaps(e[C.lat], e[C.lon])}" target="_blank" rel="noopener">${t('Cómo llegar', 'Directions')} ↗</a></div></div><div class="pr"><b>${euro(precioDe(e, i))}</b><span class="delta">${cortoComb(COMBUSTIBLES[i])}</span></div></li>`).join('')}</ol>`;
     box.hidden = false;
   } catch { box.hidden = true; }
 }
@@ -244,18 +254,18 @@ function elegir(l, { buscarYa = true } = {}) {
   mensaje('');
   cerrarSug();
   guardar();
-  try { history.replaceState(null, '', `/?lat=${l.lat.toFixed(4)}&lon=${l.lon.toFixed(4)}&l=${encodeURIComponent(l.n || '')}`); } catch {}
+  try { history.replaceState(null, '', `${INICIO}?lat=${l.lat.toFixed(4)}&lon=${l.lon.toFixed(4)}&l=${encodeURIComponent(l.n || '')}`); } catch {}
   if (buscarYa) buscar();
 }
 
 function posicion() {
   return new Promise((ok, mal) => {
-    if (!('geolocation' in navigator)) return mal(new Error('Tu navegador no permite obtener la ubicación. Escribe una dirección.'));
+    if (!('geolocation' in navigator)) return mal(new Error(t('Tu navegador no permite obtener la ubicación. Escribe una dirección.', 'Your browser cannot get your location. Type an address instead.')));
     navigator.geolocation.getCurrentPosition(
       (p) => ok({ lat: p.coords.latitude, lon: p.coords.longitude }),
       (err) => mal(new Error(err.code === 1
-        ? 'Has bloqueado el acceso a la ubicación. Actívalo en tu navegador o escribe una dirección.'
-        : 'No hemos podido encontrar tu ubicación. Inténtalo de nuevo o escribe una dirección.')),
+        ? t('Has bloqueado el acceso a la ubicación. Actívalo en tu navegador o escribe una dirección.', 'You have blocked access to your location. Allow it in your browser or type an address.')
+        : t('No hemos podido encontrar tu ubicación. Inténtalo de nuevo o escribe una dirección.', 'We could not find your location. Try again or type an address.'))),
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 },
     );
   });
@@ -322,10 +332,10 @@ function dibujarSug() {
   $('q').setAttribute('aria-expanded', String(sug.length > 0));
   let html = '', tipo = null;
   sug.forEach((p, k) => {
-    const t = p.tipo || (p.cp ? 'cp' : 'mun');
-    const grupo = t === 'dir' ? 'Direcciones' : 'Municipios y códigos postales';
+    const tp = p.tipo || (p.cp ? 'cp' : 'mun');
+    const grupo = tp === 'dir' ? t('Direcciones', 'Addresses') : t('Municipios y códigos postales', 'Towns and postcodes');
     if (grupo !== tipo) { html += `<li class="sep" role="presentation">${grupo}</li>`; tipo = grupo; }
-    const extra = t === 'dir' ? esc(p.sub) : `${esc(p.sub)} · ${p.c} gasol.`;
+    const extra = tp === 'dir' ? esc(p.sub) : `${esc(p.sub)} · ${p.c} ${t('gasol.', p.c === 1 ? 'station' : 'stations')}`;
     html += `<li role="option" id="s${k}" data-i="${k}" aria-selected="${k === sel}"><span>${esc(p.n)}</span><small>${extra}</small></li>`;
   });
   ul.innerHTML = html;
@@ -400,7 +410,7 @@ function eventos() {
 async function arrancar() {
   pintarControles();
   eventos();
-  try { await indice(); } catch { mensaje('No hemos podido cargar los precios. Comprueba tu conexión.'); return; }
+  try { await indice(); } catch { mensaje(t('No hemos podido cargar los precios. Comprueba tu conexión.', 'We could not load the prices. Check your connection.')); return; }
   pintarFavs();
 
   const p = new URLSearchParams(location.search);

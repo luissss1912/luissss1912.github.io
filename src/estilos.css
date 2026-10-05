@@ -67,7 +67,10 @@ main.wrap > * { min-width: 0; }
 .menu::-webkit-scrollbar { display: none; }
 .menu a { color: inherit; text-decoration: none; font-weight: 500; font-size: .95rem; padding: 4px 0; white-space: nowrap; opacity: .88; border-bottom: 2px solid transparent; }
 .menu a:hover, .menu a[aria-current="page"] { opacity: 1; border-bottom-color: var(--digit); }
-@media (max-width: 640px) { .cab { position: static; } .menu { margin-left: 0; width: 100%; } .cab-in { padding-block: 8px 6px; } }
+.idioma { order: 2; color: inherit; text-decoration: none; font-size: .82rem; font-weight: 600; line-height: 1; padding: 5px 9px; border: 1px solid currentColor; border-radius: 999px; opacity: .85; white-space: nowrap; }
+.idioma:hover, .idioma:focus-visible { opacity: 1; }
+.menu { order: 1; }
+@media (max-width: 640px) { .cab { position: static; } .menu { margin-left: 0; width: 100%; } .cab-in { padding-block: 8px 6px; } .idioma { order: 0; margin-left: auto; } }
 
 /* ---------- Tipografía ---------- */
 h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.1; text-wrap: balance; margin: 0; }
